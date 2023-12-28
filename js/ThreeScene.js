@@ -142,15 +142,15 @@ function removeCubes(cube1, cube2) {
     scene.remove(cube1);
     scene.remove(cube2);
 
-    const index1 = game.deck.indexOf(cube1.textureName);
-    const index2 = game.deck.indexOf(cube2.textureName);
+    const index1 = game.deck.findIndex((item) => item === cube1.textureName);
+    const index2 = game.deck.findIndex((item) => item === cube2.textureName);
 
     if (index1 !== -1) game.deck.splice(index1, 1);
     if (index2 !== -1) game.deck.splice(index2, 1);
 
     console.log(game.deck.length);
-
 }
+
 
 
 
@@ -194,6 +194,91 @@ function areCubesAroundRemovedCubes(cube1, cube2) {
     return cubesAround;
 }
 
+function simulateGame(scene) {
+    let allTilesProcessed = false;
+    // Keep trying until all tiles are processed
+    while (!allTilesProcessed) {
+        const freeTiles = findFreeTiles(game.deck);
+
+        allTilesProcessed = true; // Assume all tiles are processed unless found otherwise
+
+        // Iterate through all free tiles
+        for (let i = 0; i < freeTiles.length; i++) {
+            const tile1 = freeTiles[i];
+
+
+            for (let j = i + 1; j < freeTiles.length; j++) {
+                const tile2 = freeTiles[j];
+
+                // Check if the tiles form a valid pair
+                if (game.isValidMove(tile1, tile2)) {
+                    // If valid, find the corresponding cubes in the scene
+                    const cubes = findCubesByTexture(scene, tile1, tile2);
+                    if (cubes.length === 2) {
+                        // Remove the cubes from the scene
+                        removeCubes(cubes[0], cubes[1]);
+
+                        // Update the flag since a tile was processed
+                        allTilesProcessed = false;
+                        console.log("inside");
+                    }
+                }
+            }
+        }
+
+        // If all tiles are processed, exit the loop
+        if (allTilesProcessed) {
+            break;
+        } else {
+            // Reset the game and try again
+            game.init();
+            scene.children = []; // Clear the scene
+            addObjects(); // Add cubes to the scene
+            console.log("creating new board");
+        }
+    }
+    console.log("all files proccessed");
+}
+
+
+// Add this function to find cubes by texture in the scene
+function findCubesByTexture(scene, texture1, texture2) {
+    const cubes = [];
+
+    scene.traverse((object) => {
+        if (object.isMesh && object.textureName === texture1) {
+            cubes.push(object);
+        } else if (object.isMesh && object.textureName === texture2) {
+            cubes.push(object);
+        }
+    });
+
+    return cubes;
+}
+
+function findFreeTiles(deck) {
+    const freeTiles = [];
+
+    for (let i = 0; i < deck.length; i++) {
+        if (!isTileOnBoard(scene, deck[i])) {
+            freeTiles.push(deck[i]);
+        }
+    }
+
+    return freeTiles;
+}
+
+function isTileOnBoard(scene, tile) {
+    let isOnBoard = false;
+
+    scene.traverse((object) => {
+        if (object.isMesh && object.textureName === tile) {
+            isOnBoard = true;
+        }
+    });
+
+    return isOnBoard;
+}
 
 
 
@@ -234,7 +319,7 @@ function onCubeClick(event) {
 
     // Intersect objects in the scene
     const intersects = raycaster.intersectObjects(scene.children);
-
+   // const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.name === 'cube'));
     if (intersects.length > 0) {
         const object = intersects[0].object;
         if (object.isMesh) {
@@ -422,6 +507,9 @@ function addObjects() {
             }
         }
     });
+
+
+    simulateGame(scene);
 
     var pointLight = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
