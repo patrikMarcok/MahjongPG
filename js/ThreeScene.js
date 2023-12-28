@@ -414,8 +414,8 @@ function addObjects() {
     let tileDepth = 0.9;
 
     // Assuming the base layer is a 12x8 rectangle with the center 4 tiles removed
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 12; col++) {
+    for (let row = 0; row < 12; row++) {
+        for (let col = 0; col < 8; col++) {
             // Skip the center 4 tiles
             if (row >= 3 && row <= 4 && col >= 4 && col <= 7) {
                 continue;
@@ -450,9 +450,9 @@ function addObjects() {
     // Define the number of tiles in each subsequent layer
     let layerDefinitions = [
         // Second layer dimensions
-        { rows: 6, cols: 10, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
+        { rows: 10, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
         // Third layer dimensions
-        { rows: 4, cols: 6, skipCenter: false },
+        { rows: 6, cols: 4, skipCenter: false },
         // Fourth layer dimensions
         { rows: 2, cols: 2, skipCenter: false },
         // Fifth layer (single tile on top)
