@@ -166,6 +166,7 @@ function areCubesAboveRemovedCubes(cube1, cube2) {
 
             if (sameColumn && aboveRemovedCubes) {
                 cubesAbove = true;
+                console.log("cubes above")
             }
         }
     });
@@ -187,6 +188,7 @@ function areCubesAroundRemovedCubes(cube1, cube2) {
 
             if (onLeftSide && onRightSide) {
                 cubesAround = true;
+                console.log("cubes around")
             }
         }
     });
@@ -197,35 +199,23 @@ function areCubesAroundRemovedCubes(cube1, cube2) {
 function simulateGame(scene) {
     let allTilesProcessed = false;
     // Keep trying until all tiles are processed
-    while (!allTilesProcessed) {
-        const freeTiles = findFreeTiles(game.deck);
+    console.log("in")
+    while(!allTilesProcessed){
+        scene.traverse((object) => {
+            if (object.isMesh ) {
+                texture1= object.textureName
+                scene.traverse((object2) => { if(object!=object2 && texture1 == object2.textureName){
+                    texture2= object2.textureName;
+                    console.log("som dnu");
+                    //checkIfSelectedCubesCanDisappear(object,object2);
 
-        allTilesProcessed = true; // Assume all tiles are processed unless found otherwise
-
-        // Iterate through all free tiles
-        for (let i = 0; i < freeTiles.length; i++) {
-            const tile1 = freeTiles[i];
-
-
-            for (let j = i + 1; j < freeTiles.length; j++) {
-                const tile2 = freeTiles[j];
-
-                // Check if the tiles form a valid pair
-                if (game.isValidMove(tile1, tile2)) {
-                    // If valid, find the corresponding cubes in the scene
-                    const cubes = findCubesByTexture(scene, tile1, tile2);
-                    if (cubes.length === 2) {
-                        // Remove the cubes from the scene
-                        removeCubes(cubes[0], cubes[1]);
-
-                        // Update the flag since a tile was processed
-                        allTilesProcessed = false;
-                        console.log("inside");
-                    }
-                }
+                }})
             }
-        }
+        });
+        allTilesProcessed=true;
 
+
+/*
         // If all tiles are processed, exit the loop
         if (allTilesProcessed) {
             break;
@@ -235,7 +225,7 @@ function simulateGame(scene) {
             scene.children = []; // Clear the scene
             addObjects(); // Add cubes to the scene
             console.log("creating new board");
-        }
+        }*/
     }
     console.log("all files proccessed");
 }
@@ -258,25 +248,27 @@ function findCubesByTexture(scene, texture1, texture2) {
 
 function findFreeTiles(deck) {
     const freeTiles = [];
-
+    //console.log("inin")
     for (let i = 0; i < deck.length; i++) {
-        if (!isTileOnBoard(scene, deck[i])) {
+        if (isTileOnBoard(scene, deck[i])) {
             freeTiles.push(deck[i]);
+            //console.log(deck[i])
         }
     }
+
 
     return freeTiles;
 }
 
 function isTileOnBoard(scene, tile) {
     let isOnBoard = false;
-
+    //console.log("ininin")
     scene.traverse((object) => {
         if (object.isMesh && object.textureName === tile) {
             isOnBoard = true;
         }
     });
-
+    //console.log(isOnBoard)
     return isOnBoard;
 }
 
@@ -296,7 +288,7 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
     const cubesAbove = areCubesAboveRemovedCubes(cube1, cube2);
     const cubesAround = areCubesAroundRemovedCubes(cube1,cube2);
     //let cubesAround = false;
-    if (/*!cubesAbove &&*/ !cubesAround) {
+    if (!cubesAbove && !cubesAround) {
         // There are no cubes above the removed cubes
         console.log("There are no cubes above the removed cubes.");
         removeCubes(cube1,cube2);
@@ -381,7 +373,7 @@ function init() {
 
     scene = new THREE.Scene();
     addObjects();
-
+    simulateGame(scene);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
 
@@ -509,7 +501,7 @@ function addObjects() {
     });
 
 
-    simulateGame(scene);
+
 
     var pointLight = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
