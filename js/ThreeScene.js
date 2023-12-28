@@ -188,10 +188,27 @@ function areCubesAboveRemovedCubes(cube1, cube2) {
         }
     });
 
-    return cubesAbove;
+//    return cubesAbove;
 }
 
 
+/*function areCubesAroundRemovedCube(cube1) {
+    scene.traverse((object) => {
+        if (object.isMesh && object !== cube1 && object !== cube2) {
+            if(object.position.y == cube1.position.y && object.position.z == cube1.position.z){
+                if((object.position.x - cube1.position.x) <= 0.8){
+                    console.log("in condition")
+                    return false;
+
+                }
+            }
+        }
+
+    });
+    return true;
+
+
+}*/
 
 function areCubesAroundRemovedCubes(cube1, cube2) {
     let cube1Free = false;
@@ -207,6 +224,7 @@ function areCubesAroundRemovedCubes(cube1, cube2) {
                 if (object.position.z === cube1.position.z) {
                     if (object.position.x < cube1.position.x) {
                         cube1Free = true; // Free on the left side
+                        console.log("free on left")
                     } else {
                         cube2Free = true; // Since cube2 is to the right of cube1
                     }
@@ -318,8 +336,12 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
     console.log("pos2y" + cube2.position.y);
     console.log("pos2z" + cube2.position.z);
 
-    const cubesAbove = areCubesAboveRemovedCubes(cube1, cube2);
-    const cubesAround = areCubesAroundRemovedCubes(cube1,cube2);
+    const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
+    const cubesAround = areCubesAroundoveRemovedCube(cube1, cube2);
+
+    //const cubesAround1 = areCubesAroundRemovedCube(cube1);
+    //const cubesAround2 = areCubesAroundRemovedCube(cube2);
+
     //let cubesAround = false;
     if (!cubesAbove && !cubesAround) {
         // There are no cubes above the removed cubes
