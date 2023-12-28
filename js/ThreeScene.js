@@ -1,5 +1,9 @@
 var camera, scene, renderer, controls;
 var geometry, material, cube1, cube2, cube3, plane, sphere;
+var textureNameObject = { textureName: 'No Texture Clicked' };
+let tileWidth = 0.8;
+let tileHeight = 0.4;
+let tileDepth = 0.9;
 
 const textureNames = [
     'Chun',
@@ -77,6 +81,7 @@ class Game {
             const j = Math.floor(Math.random() * (i + 1));
             [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
         }
+        console.log(this.deck)
         return this.deck;
     }
 
@@ -100,7 +105,7 @@ class Game {
 
     newGame() {
         this.init();
-        this.updateScene(); // Add this line to update the Three.js scene after initializing a new game
+        this.updateCubeTextures(); // Add this line to update the Three.js scene after initializing a new game
     }
     // Check if a move is valid
     isValidMove(tile1, tile2) {
@@ -110,8 +115,20 @@ class Game {
     reshuffleBoard() {
         this.shuffleDeck();
         this.updateScene();
+        //this.updateCubeTextures();
     }
 
+    updateCubeTextures() {
+        const cubes = scene.children.filter(obj => obj.name === 'cube');
+        let deck1 = this.deck;
+        cubes.forEach(cube => {
+            const newTexture = deck1.pop();
+            cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + newTexture + '.png');
+            console.log(cube.textureName)
+            cube.textureName = newTexture;
+            console.log(cube.textureName)
+        });
+    }
     updateScene() {
         // Clear existing cubes from the scene
         scene.children.forEach((child) => {
@@ -161,12 +178,12 @@ function areCubesAboveRemovedCubes(cube1, cube2) {
     scene.traverse((object) => {
         if (object.isMesh && object !== cube1 && object !== cube2) {
             // Check if the object is in the same column and above the removed cubes
-            const sameColumn = Math.abs(object.position.x - cube1.position.x) < 0.01; // Adjust the threshold as needed
-            const aboveRemovedCubes = object.position.z > cube1.position.z && object.position.z > cube2.position.z;
+            const sameColumn = Math.abs(object.position.x - cube1.position.x) < 0.5; // Adjust the threshold as needed
+            const aboveRemovedCubes = object.position.y > Math.max(cube1.position.y, cube2.position.y);
 
             if (sameColumn && aboveRemovedCubes) {
                 cubesAbove = true;
-                console.log("cubes above")
+                console.log("cubes above");
             }
         }
     });
@@ -175,25 +192,41 @@ function areCubesAboveRemovedCubes(cube1, cube2) {
 }
 
 
+
 function areCubesAroundRemovedCubes(cube1, cube2) {
-    let cubesAround = false;
+    let cube1Free = false;
+    let cube2Free = false;
 
     // Iterate through all objects in the scene
     scene.traverse((object) => {
         if (object.isMesh && object !== cube1 && object !== cube2) {
-            // Check if the object is around the removed cubes on the x-axis
-            const onLeftSide = object.position.x < cube1.position.x && object.position.x < cube2.position.x;
-            const onRightSide = object.position.x > cube1.position.x && object.position.x > cube2.position.x;
+            const distanceX = Math.abs(object.position.x - cube1.position.x);
 
+            // Check for cube1
+            if (distanceX === tileWidth) {
+                if (object.position.z === cube1.position.z) {
+                    if (object.position.x < cube1.position.x) {
+                        cube1Free = true; // Free on the left side
+                    } else {
+                        cube2Free = true; // Since cube2 is to the right of cube1
+                    }
+                }
+            }
 
-            if (onLeftSide && onRightSide) {
-                cubesAround = true;
-                console.log("cubes around")
+            // Check for cube2 (mirror logic of cube1)
+            if (distanceX === tileWidth) {
+                if (object.position.z === cube2.position.z) {
+                    if (object.position.x > cube2.position.x) {
+                        cube2Free = true; // Free on the right side
+                    } else {
+                        cube1Free = true; // Since cube1 is to the left of cube2
+                    }
+                }
             }
         }
     });
 
-    return cubesAround;
+    return cube1Free && cube2Free;
 }
 
 function simulateGame(scene) {
@@ -310,11 +343,12 @@ function onCubeClick(event) {
     raycaster.setFromCamera(mouse, camera);
 
     // Intersect objects in the scene
-    const intersects = raycaster.intersectObjects(scene.children);
-   // const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.name === 'cube'));
+   // const intersects = raycaster.intersectObjects(scene.children);
+    const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.name === 'cube'));
     if (intersects.length > 0) {
         const object = intersects[0].object;
         if (object.isMesh) {
+            textureNameObject.textureName = object.textureName;
             if (!firstClickedCube) {
                 // First click, store the texture name
 
@@ -361,8 +395,11 @@ function init() {
     var buttonObject = { clickButton: function() { game.reshuffleBoard(); } };
     var buttonObject1 = { clickButton: function() { game.newGame(); } };
 
+
     gui.add(buttonObject, 'clickButton').name('Reshuffle');
     gui.add(buttonObject1, 'clickButton').name('New Game');
+    gui.add(textureNameObject, 'textureName').name('Clicked Texture');
+
 
 
 
@@ -409,12 +446,10 @@ function addObjects() {
 
     let deckcount = 0;
     let offsetX, offsetY, offsetZ;
-    let tileWidth = 0.8;
-    let tileHeight = 0.4;
-    let tileDepth = 0.9;
+
 
     // Assuming the base layer is a 12x8 rectangle with the center 4 tiles removed
-    for (let row = 0; row < 12; row++) {
+    /*for (let row = 0; row < 12; row++) {
         for (let col = 0; col < 8; col++) {
             // Skip the center 4 tiles
             if (row >= 3 && row <= 4 && col >= 4 && col <= 7) {
@@ -446,17 +481,18 @@ function addObjects() {
             cube.textureName = tile;
             scene.add(cube);
             }
-        }
+        }*/
     // Define the number of tiles in each subsequent layer
     let layerDefinitions = [
+        {rows: 9,cols: 7, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
         // Second layer dimensions
-        { rows: 10, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
+        { rows: 8, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
         // Third layer dimensions
-        { rows: 6, cols: 4, skipCenter: false },
+        { rows: 5, cols: 3, skipCenter: false },
         // Fourth layer dimensions
         { rows: 2, cols: 2, skipCenter: false },
         // Fifth layer (single tile on top)
-        { rows: 1, cols: 1, skipCenter: false }
+        //{ rows: 1, cols: 1, skipCenter: false }
     ];
 
 // The height of each layer, assuming each tile is offset upwards by the height of the tile below it
@@ -474,7 +510,8 @@ function addObjects() {
                     break;
                 }
 
-                let tile = game.deck[deckcount++];
+                let tile = game.deck[deckcount];
+                deckcount++;
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                 var materialCube = [
@@ -495,7 +532,9 @@ function addObjects() {
                 let cube = new THREE.Mesh(geometryCube, materialCube);
                 cube.position.set(offsetX, offsetY, offsetZ);
                 cube.textureName = tile;
+                cube.name = 'cube';
                 scene.add(cube);
+
             }
         }
     });
