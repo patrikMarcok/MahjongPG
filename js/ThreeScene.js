@@ -215,6 +215,7 @@ function areCubesAboveRemovedCube(cube1, cube2) {
         raycaster.set(corner, direction);
 
         // Calculate objects intersecting the picking ray
+        //Ak su rovnake tak ze jedna je nad druhou tak to prejde treba fixnut?
         const intersects = raycaster.intersectObjects(scene.children, true).filter(intersectedObj => intersectedObj.object !== cube1 && intersectedObj.object !== cube2);
 
         // Check each intersection
@@ -234,7 +235,7 @@ function areCubesAboveRemovedCube(cube1, cube2) {
             return;
         }
     });
-
+    console.log("Cube above: " + cubesAbove);
     return cubesAbove;
 }
 
@@ -259,40 +260,65 @@ function areCubesAboveRemovedCube(cube1, cube2) {
 }*/
 
 function areCubesAroundRemovedCube(cube1, cube2) {
-    let cube1Free = false;
-    let cube2Free = false;
+    let cubesFree = 0;
 
-    // Iterate through all objects in the scene
-    scene.traverse((object) => {
-        if (object.isMesh && object !== cube1 && object !== cube2) {
-            const distanceX = Math.abs(object.position.x - cube1.position.x);
 
-            // Check for cube1
-            if (distanceX === tileWidth) {
-                if (object.position.z === cube1.position.z) {
-                    if (object.position.x < cube1.position.x) {
-                        cube1Free = true; // Free on the left side
-                        console.log("free on left")
-                    } else {
-                        cube2Free = true; // Since cube2 is to the right of cube1
-                    }
-                }
+    // Dimensions of the cubes
+    const Width = 0.8;
+    const Height = 0.4;
+    const Depth = 0.9;
+
+    // The distance threshold for considering if there are cubes around
+    const closeDistanceThreshold = 0.2;
+
+    // Directions for the four side rays
+    const directions = [
+        new THREE.Vector3(1, 0, 0),  // +x (right)
+        new THREE.Vector3(-1, 0, 0), // -x (left)
+        new THREE.Vector3(0, 0, 1),  // +z (front)
+        new THREE.Vector3(0, 0, -1)  // -z (back)
+    ];
+
+    // Function to get the world position of the cube's side center
+    const getSideCenterPosition = (cube, dir) => {
+        const position = new THREE.Vector3();
+        cube.getWorldPosition(position);
+        position.x += dir.x * Width * 0.5;
+        position.y += Height * 0.5; // Centered vertically in the cube
+        position.z += dir.z * Depth * 0.5;
+        return position;
+    };
+
+    // Create a raycaster
+    const raycaster = new THREE.Raycaster();
+
+    // Check each direction for each cube
+    [cube1, cube2].forEach((cube) => {
+        let sidesFree = 0; // Counter for free sides
+        directions.forEach((dir) => {
+            // Get the starting position for the ray
+            const start = getSideCenterPosition(cube, dir);
+
+            // Set the raycaster
+            raycaster.set(start, dir);
+
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObjects(scene.children, true).filter(intersectedObj => intersectedObj.object !== cube1 && intersectedObj.object !== cube2);
+
+            // If no intersected object is within closeDistanceThreshold, it's a free side
+            if (intersects.length === 0 || intersects[0].distance > closeDistanceThreshold) {
+                sidesFree++;
             }
+        });
 
-            // Check for cube2 (mirror logic of cube1)
-            if (distanceX === tileWidth) {
-                if (object.position.z === cube2.position.z) {
-                    if (object.position.x > cube2.position.x) {
-                        cube2Free = true; // Free on the right side
-                    } else {
-                        cube1Free = true; // Since cube1 is to the left of cube2
-                    }
-                }
-            }
+
+        if (sidesFree > 0) {
+            console.log("Sides free: " + sidesFree);
+            cubesFree++;
         }
     });
+    return cubesFree !== 2;
 
-    return cube1Free && cube2Free;
 }
 
 function simulateGame(scene) {
@@ -475,6 +501,8 @@ function init() {
 
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional, for softer shadows
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
@@ -506,6 +534,7 @@ function addObjects() {
     plane = new THREE.Mesh(geometryPlane, materialPlane);
     plane.position.set(0, -2.2, 0);
     plane.rotation.x = Math.PI / 2;
+    plane.receiveShadow = true;
     scene.add(plane);
     var geometrySphere = new THREE.SphereGeometry(100, 100, 100);
     var sphereTexture = new THREE.ImageUtils.loadTexture('texture/sky.jpg');
@@ -567,6 +596,8 @@ function addObjects() {
 
 // The height of each layer, assuming each tile is offset upwards by the height of the tile below it
     let layerHeight = tileHeight;
+// Define a small constant for the gap
+    const gap = 0.05;
 
     layerDefinitions.forEach((layerDef, layerIndex) => {
         for (let row = 0; row < layerDef.rows; row++) {
@@ -594,16 +625,17 @@ function addObjects() {
                 ];
 
                 // Calculate the offsets for positioning each layer
-                offsetX = ((col - (layerDef.cols / 2)) + 0.5) * tileWidth;
-                offsetY = layerHeight * (layerIndex + 1); // Stack layers on top of each other
-                offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * tileDepth;
+                offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
+                offsetY = layerHeight * (layerIndex - 5); // Stack layers on top of each other
+                offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * (tileDepth + gap);
 
                 let cube = new THREE.Mesh(geometryCube, materialCube);
                 cube.position.set(offsetX, offsetY, offsetZ);
                 cube.textureName = tile;
                 cube.name = 'cube';
+                cube.castShadow = true;
+                cube.receiveShadow = true;
                 scene.add(cube);
-
             }
         }
     });
