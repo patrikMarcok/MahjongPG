@@ -171,25 +171,73 @@ function removeCubes(cube1, cube2) {
 
 
 
-function areCubesAboveRemovedCubes(cube1, cube2) {
+function areCubesAboveRemovedCube(cube1, cube2) {
     let cubesAbove = false;
+    const raycaster = new THREE.Raycaster();
+    const direction = new THREE.Vector3(0, 1, 0); // Upwards direction
+    const maxDistance = 1; // Max distance to check for an object above
 
-    // Iterate through all objects in the scene
-    scene.traverse((object) => {
-        if (object.isMesh && object !== cube1 && object !== cube2) {
-            // Check if the object is in the same column and above the removed cubes
-            const sameColumn = Math.abs(object.position.x - cube1.position.x) < 0.5; // Adjust the threshold as needed
-            const aboveRemovedCubes = object.position.y > Math.max(cube1.position.y, cube2.position.y);
+    // Dimensions of the cubes
+    const Width = 0.8;
+    const Height = 0.4;
+    const Depth = 0.9;
 
-            if (sameColumn && aboveRemovedCubes) {
+    // Calculate the offsets for the corners from the center
+    const halfWidth = Width * 0.5;
+    const halfDepth = Depth * 0.5;
+    const topY = Height * 0.5; // Since we want the top corners
+
+    // Function to get the world position of the cube's corner
+    const getCornerPosition = (cube, offsetX, offsetZ) => {
+        const position = new THREE.Vector3();
+        cube.getWorldPosition(position);
+        position.x += offsetX;
+        position.y += topY;
+        position.z += offsetZ;
+        return position;
+    };
+
+    // Array of corners for cube1 and cube2
+    const corners = [
+        getCornerPosition(cube1, halfWidth, halfDepth),
+        getCornerPosition(cube1, halfWidth, -halfDepth),
+        getCornerPosition(cube1, -halfWidth, halfDepth),
+        getCornerPosition(cube1, -halfWidth, -halfDepth),
+        getCornerPosition(cube2, halfWidth, halfDepth),
+        getCornerPosition(cube2, halfWidth, -halfDepth),
+        getCornerPosition(cube2, -halfWidth, halfDepth),
+        getCornerPosition(cube2, -halfWidth, -halfDepth)
+    ];
+
+    // Check intersections for each corner
+    corners.forEach((corner) => {
+        // Set the raycaster to start at the corner of the cube and cast upwards
+        raycaster.set(corner, direction);
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(scene.children, true).filter(intersectedObj => intersectedObj.object !== cube1 && intersectedObj.object !== cube2);
+
+        // Check each intersection
+        for (let i = 0; i < intersects.length; i++) {
+            // Calculate the distance from the cube's top face to the intersection point
+            let distance = intersects[i].point.y - corner.y;
+            // Check if the distance is less than maxDistance
+            if (distance > 0 && distance < maxDistance) {
                 cubesAbove = true;
-                console.log("cubes above");
+                console.log("Cubes above within 1 unit in the y-direction");
+                break; // No need to check other intersections since we found a cube above
             }
+        }
+
+        // Break out of the loop early if we've already found a cube above
+        if (cubesAbove) {
+            return;
         }
     });
 
-//    return cubesAbove;
+    return cubesAbove;
 }
+
 
 
 /*function areCubesAroundRemovedCube(cube1) {
@@ -210,7 +258,7 @@ function areCubesAboveRemovedCubes(cube1, cube2) {
 
 }*/
 
-function areCubesAroundRemovedCubes(cube1, cube2) {
+function areCubesAroundRemovedCube(cube1, cube2) {
     let cube1Free = false;
     let cube2Free = false;
 
@@ -266,17 +314,17 @@ function simulateGame(scene) {
         allTilesProcessed=true;
 
 
-/*
-        // If all tiles are processed, exit the loop
-        if (allTilesProcessed) {
-            break;
-        } else {
-            // Reset the game and try again
-            game.init();
-            scene.children = []; // Clear the scene
-            addObjects(); // Add cubes to the scene
-            console.log("creating new board");
-        }*/
+        /*
+                // If all tiles are processed, exit the loop
+                if (allTilesProcessed) {
+                    break;
+                } else {
+                    // Reset the game and try again
+                    game.init();
+                    scene.children = []; // Clear the scene
+                    addObjects(); // Add cubes to the scene
+                    console.log("creating new board");
+                }*/
     }
     console.log("all files proccessed");
 }
@@ -337,7 +385,7 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
     console.log("pos2z" + cube2.position.z);
 
     const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
-    const cubesAround = areCubesAroundoveRemovedCube(cube1, cube2);
+    const cubesAround = areCubesAroundRemovedCube(cube1, cube2);
 
     //const cubesAround1 = areCubesAroundRemovedCube(cube1);
     //const cubesAround2 = areCubesAroundRemovedCube(cube2);
@@ -365,7 +413,7 @@ function onCubeClick(event) {
     raycaster.setFromCamera(mouse, camera);
 
     // Intersect objects in the scene
-   // const intersects = raycaster.intersectObjects(scene.children);
+    // const intersects = raycaster.intersectObjects(scene.children);
     const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.name === 'cube'));
     if (intersects.length > 0) {
         const object = intersects[0].object;
@@ -450,8 +498,8 @@ function gameMap(x,y){
 }
 
 function addObjects() {
-    var geometryPlane = new THREE.PlaneGeometry(10, 10, 4, 4);
-    var materialPlane = new THREE.MeshBasicMaterial({
+    var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+    var materialPlane = new THREE.MeshPhongMaterial({
         color: 0x747570,
         side: THREE.DoubleSide
     });
@@ -537,13 +585,12 @@ function addObjects() {
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                 var materialCube = [
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Right side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Left side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a, map: cubeTexture }), // Top side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Bottom side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Front side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a })  // Back side
-
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
                 ];
 
                 // Calculate the offsets for positioning each layer
@@ -560,9 +607,6 @@ function addObjects() {
             }
         }
     });
-
-
-
 
     var pointLight = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
@@ -610,8 +654,6 @@ function addObjects() {
     pointLight4.shadow.camera.near = 0.5;
     pointLight4.shadow.camera.far = 500;
     pointLight4.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
-
-
 
     var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
     scene.add(ambientLight);
