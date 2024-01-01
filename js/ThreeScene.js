@@ -114,21 +114,41 @@ class Game {
 
     reshuffleBoard() {
         this.shuffleDeck();
-        this.updateScene();
-        //this.updateCubeTextures();
+        //this.updateScene();
+        this.updateCubeTextures();
     }
 
     updateCubeTextures() {
         const cubes = scene.children.filter(obj => obj.name === 'cube');
+        let shuffledTextures = [...this.deck]; // Create a copy of the deck
+        this.shuffleArray(shuffledTextures); // Shuffle the copy, not the original deck
+
+        cubes.forEach((cube, index) => {
+            const textureName = shuffledTextures[index % shuffledTextures.length];
+            cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + textureName + '.png');
+            cube.textureName = textureName;
+        });
+    }
+
+// Helper function to shuffle an array
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+/*    updateCubeTextures() {
+        const cubes = scene.children.filter(obj => obj.name === 'cube');
         let deck1 = this.deck;
+        console.log(this.deck);
         cubes.forEach(cube => {
             const newTexture = deck1.pop();
             cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + newTexture + '.png');
-            console.log(cube.textureName)
+            //console.log(cube.textureName)
             cube.textureName = newTexture;
-            console.log(cube.textureName)
+            //console.log(cube.textureName)
         });
-    }
+    }*/
     updateScene() {
         // Clear existing cubes from the scene
         scene.children.forEach((child) => {
