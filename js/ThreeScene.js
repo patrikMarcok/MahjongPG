@@ -219,8 +219,6 @@ function removeCubes(cube1, cube2) {
 }
 
 
-
-
 function areCubesAboveRemovedCube(cube1, cube2) {
     let cubesAbove = false;
     const raycaster = new THREE.Raycaster();
@@ -633,7 +631,7 @@ function addObjects() {
         // Second layer dimensions
         { rows: 7, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
         // Third layer dimensions
-        { rows: 5, cols: 3, skipCenter: false },
+        { rows: 5, cols: 4, skipCenter: false },
         // Fourth layer dimensions
         { rows: 2, cols: 2, skipCenter: false },
         // Fifth layer (single tile on top)
@@ -686,6 +684,9 @@ function addObjects() {
             }
         }
     });
+
+    const cubes = scene.children.filter(obj => obj.name === 'cube');
+    console.log('cubes length ' + cubes.length);
 
     var pointLight = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
