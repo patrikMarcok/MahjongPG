@@ -210,9 +210,9 @@ function removeCubes(cube1, cube2) {
     scene.remove(cube2);
 
     const index1 = game.deck.findIndex((item) => item === cube1.textureName);
-    const index2 = game.deck.findIndex((item) => item === cube2.textureName);
-
     if (index1 !== -1) game.deck.splice(index1, 1);
+
+    const index2 = game.deck.findIndex((item) => item === cube2.textureName);
     if (index2 !== -1) game.deck.splice(index2, 1);
 
     console.log(game.deck.length);
