@@ -93,7 +93,7 @@ class Game {
         let deck = [];
         // In Mahjongg, there are 144 tiles, with 4 duplicates of each kind.
         // Here, we'll just use numbers for simplicity.
-        for (let i = 1; i <= 36; i++) {
+        for (let i = 0; i < 36; i++) {
             for (let j = 0; j < 4; j++) {
                 deck.push(textureNames[i]);
 
@@ -148,11 +148,13 @@ class Game {
     updateCubeTextures() {
         const cubes = scene.children.filter(obj => obj.name === 'cube');
         console.log(cubes.length);
-        let shuffledTextures = [...this.deck]; // Create a copy of the deck
-        this.shuffleArray(shuffledTextures); // Shuffle the copy, not the original deck
+       // let shuffledTextures = [...this.deck]; // Create a copy of the deck
+        //toto tu preco
+        //this.shuffleArray(game.deck); // Shuffle the copy, not the original deck
 
         cubes.forEach((cube, index) => {
-            const textureName = shuffledTextures[index % shuffledTextures.length];
+            const textureName = game.deck[index % game.deck.length];
+            //zeby sa neuklada spravne?
             cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + textureName + '.png');
             cube.textureName = textureName;
         });
