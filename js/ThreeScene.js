@@ -44,9 +44,36 @@ const textureNames = [
     'Sou9',
     'Ton'
 ];
-
 // Now you can use this array in your code
 
+
+function isGamePlayable() {
+    let playable = false;
+    const cubes = scene.children.filter(obj => obj.name === 'cube');
+    // We'll use a nested loop to compare each cube with every other cube.
+    for (let i = 0; i < cubes.length - 1; i++) {
+        for (let j = i + 1; j < cubes.length; j++) {
+            if (cubes[i].textureName === cubes[j].textureName && checkIfSelectedCubesCanDisappear(cubes[i], cubes[j])) {
+                // If there's at least one pair that can be removed, the game is playable.
+                playable = true
+                //return true;
+                break;
+            }
+        }
+        if (playable) {
+            break;
+        }
+    }
+
+    if (!playable) {
+        // No more moves can be made with the current arrangement of cubes.
+        console.log('No more moves. Reshuffling...');
+        //game.reshuffleBoard();
+    } else {
+        console.log('The game is playable. Make your move.');
+    }
+    return playable;
+}
 
 class Game {
     constructor() {
@@ -57,7 +84,7 @@ class Game {
     // Initialize the game or reset the game to its initial state
     init() {
         this.deck = this.createDeck();
-        this.shuffleDeck();
+        this.deck = this.shuffleDeck();
         //this.board = this.createBoard();
     }
 
@@ -120,6 +147,7 @@ class Game {
 
     updateCubeTextures() {
         const cubes = scene.children.filter(obj => obj.name === 'cube');
+        console.log(cubes.length);
         let shuffledTextures = [...this.deck]; // Create a copy of the deck
         this.shuffleArray(shuffledTextures); // Shuffle the copy, not the original deck
 
@@ -157,7 +185,7 @@ class Game {
                 scene.remove(child);
             }
         });
-        addObjects();
+        //addObjects();
     }
 
 
@@ -186,6 +214,8 @@ function removeCubes(cube1, cube2) {
     if (index2 !== -1) game.deck.splice(index2, 1);
 
     console.log(game.deck.length);
+
+    //isGamePlayable();
 }
 
 
@@ -341,9 +371,11 @@ function areCubesAroundRemovedCube(cube1, cube2) {
 
 }
 
-function simulateGame(scene) {
+
+/*function simulateGame(scene, game) {
     let allTilesProcessed = false;
     // Keep trying until all tiles are processed
+    deck = game.deck;
     console.log("in")
     while(!allTilesProcessed){
         scene.traverse((object) => {
@@ -352,29 +384,18 @@ function simulateGame(scene) {
                 scene.traverse((object2) => { if(object!=object2 && texture1 == object2.textureName){
                     texture2= object2.textureName;
                     console.log("som dnu");
-                    //checkIfSelectedCubesCanDisappear(object,object2);
+                    checkIfSelectedCubesCanDisappear(object,object2);
 
                 }})
             }
         });
         allTilesProcessed=true;
 
-
-        /*
-                // If all tiles are processed, exit the loop
-                if (allTilesProcessed) {
-                    break;
-                } else {
-                    // Reset the game and try again
-                    game.init();
-                    scene.children = []; // Clear the scene
-                    addObjects(); // Add cubes to the scene
-                    console.log("creating new board");
-                }*/
     }
+
     console.log("all files proccessed");
 }
-
+*/
 
 // Add this function to find cubes by texture in the scene
 function findCubesByTexture(scene, texture1, texture2) {
@@ -422,13 +443,13 @@ function isTileOnBoard(scene, tile) {
 function checkIfSelectedCubesCanDisappear(cube1,cube2){
 
 
-    console.log("pos1x" + cube1.position.x);
-    console.log("pos1y" + cube1.position.y);
-    console.log("pos1z" + cube1.position.z);
+    //console.log("pos1x" + cube1.position.x);
+    //console.log("pos1y" + cube1.position.y);
+    //console.log("pos1z" + cube1.position.z);
 
-    console.log("pos2x" + cube2.position.x);
-    console.log("pos2y" + cube2.position.y);
-    console.log("pos2z" + cube2.position.z);
+  //  console.log("pos2x" + cube2.position.x);
+//    console.log("pos2y" + cube2.position.y);
+    //console.log("pos2z" + cube2.position.z);
 
     const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
     const cubesAround = areCubesAroundRemovedCube(cube1, cube2);
@@ -441,11 +462,15 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
         // There are no cubes above the removed cubes
         console.log("There are no cubes above the removed cubes.");
         removeCubes(cube1,cube2);
+        return true;
+
     } else {
         // There are cubes above the removed cubes
         console.log("There are cubes above or around the removed cubes.");
+        return false;
     }
 
+    return false;
 
 }
 function onCubeClick(event) {
@@ -528,7 +553,7 @@ function init() {
 
     scene = new THREE.Scene();
     addObjects();
-    simulateGame(scene);
+   // simulateGame(scene, game);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
 
@@ -602,10 +627,11 @@ function addObjects() {
             }
         }*/
     // Define the number of tiles in each subsequent layer
+
     let layerDefinitions = [
-        {rows: 9,cols: 7, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
+        {rows: 11,cols: 8, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
         // Second layer dimensions
-        { rows: 8, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
+        { rows: 7, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
         // Third layer dimensions
         { rows: 5, cols: 3, skipCenter: false },
         // Fourth layer dimensions
@@ -628,6 +654,7 @@ function addObjects() {
                 }
 
                 if (deckcount >= game.deck.length) {
+                    console.log("Error!")
                     break;
                 }
 
@@ -722,5 +749,5 @@ function addObjects() {
 
 
 
-init();
-render();
+//init();
+//render();

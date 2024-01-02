@@ -1,3 +1,40 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+#banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 10px;
+}
+
+#banner h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+#banner p {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+#banner button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.5em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 .slidecontainer {
     width: 100%;
 }

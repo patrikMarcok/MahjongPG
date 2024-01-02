@@ -1,25 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>PC Grafika ThreeJS </title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link rel="stylesheet" href="styles.css">
-	</head>
+<head>
+	<title>PC Grafika ThreeJS </title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link rel="stylesheet" href="styles.css">
 
-	<script src="js/threejs/build/three.js"></script>
-	<script src="js/threejs/js/controls/OrbitControls.js"></script>
-	<script src="js/datGUI/dat.gui.min.js"></script>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			background-color: #222; /* Set a background color for better visibility */
+		}
 
+		#banner {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			background: rgba(255, 255, 255, 0.8); /* Set background color with transparency */
+			padding: 20px;
+			border-radius: 10px;
+			max-width: 400px;
+			width: 100%;
+			box-sizing: border-box;
+		}
 
+		#canvasContainer {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+<div id="banner">
+	<h1>Welcome to Your Game</h1>
+	<p>Get ready for an exciting adventure!</p>
+	<button onclick="startGame()">Play Now</button>
+</div>
 
+<div id="canvasContainer">
+	<!-- The Three.js canvas will be added here -->
+</div>
 
-	<body>
-		<div id="canvas1">
+<script src="js/threejs/build/three.js"></script>
+<script src="js/threejs/js/controls/OrbitControls.js"></script>
+<script src="js/datGUI/dat.gui.min.js"></script>
+<script src="js/ThreeScene.js"></script>
 
-			<script src="js/ThreeScene.js"></script>
+<script>
+	var gameInitialized = false;
 
-		</div>
+	function startGame() {
+		if (!gameInitialized) {
+			// Hide the welcome banner
+			document.getElementById('banner').style.display = 'none';
 
-	</body>
+			// Show the Three.js canvas container
+			document.getElementById('canvasContainer').style.display = 'block';
+
+			// Initialize and render the game only once
+			init();
+			render();
+
+			gameInitialized = true;
+		}
+	}
+</script>
+</body>
 </html>
