@@ -323,8 +323,6 @@ function areCubesAroundRemovedCube(cube1, cube2) {
     const directions = [
         new THREE.Vector3(1, 0, 0),  // +x (right)
         new THREE.Vector3(-1, 0, 0), // -x (left)
-        new THREE.Vector3(0, 0, 1),  // +z (front)
-        new THREE.Vector3(0, 0, -1)  // -z (back)
     ];
 
     // Function to get the world position of the cube's side center
