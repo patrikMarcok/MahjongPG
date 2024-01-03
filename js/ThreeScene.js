@@ -439,18 +439,18 @@ function isTileOnBoard(scene, tile) {
 
 
 
-function checkIfSelectedCubesCanDisappear(cube1,cube2){
+function checkIfSelectedCubesCanDisappear(cube1,cube2,cube3){
     const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
     const cubesAround = areCubesAroundRemovedCube(cube1, cube2);
     if (!cubesAbove && !cubesAround) {
         // There are no cubes above the removed cubes
         console.log("There are no cubes above the removed cubes.");
-        removeCubes(cube1,cube2);
+        removeCubes(cube3,cube2);
         return true;
 
     } else {
         // There are cubes above the removed cubes
-        console.log("There are cubes above or around the removed cubes.");
+        alert("There are tiles above or around the second tile!");
         return false;
     }
 
@@ -507,7 +507,7 @@ function onCubeClick(event) {
                 // Second click, compare texture names
                 console.log('Second clicked cube texture:', object.textureName);
                 if (firstClickedCube.textureName === object.textureName && firstClickedCube!=object) {
-                    if(checkIfSelectedCubesCanDisappear(newCube,object)) {
+                    if(checkIfSelectedCubesCanDisappear(newCube,object, firstClickedCube)) {
                         scene.remove(newCube);
                         console.log('Textures match!');
                     }else{
