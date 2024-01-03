@@ -1,9 +1,12 @@
 var camera, scene, renderer, controls;
 var geometry, material, cube1, cube2, cube3, plane, sphere;
 var textureNameObject = { textureName: 'No Texture Clicked' };
+var backgroundTexture = new THREE.ImageUtils.loadTexture('texture/tiles/Haku.png');
+
 let tileWidth = 0.8;
 let tileHeight = 0.4;
 let tileDepth = 0.9;
+let newCube;
 
 const textureNames = [
     'Chun',
@@ -469,18 +472,50 @@ function onCubeClick(event) {
             if (!firstClickedCube) {
                 // First click, store the texture name
                 firstClickedCube = object;
+
                 console.log('First clicked cube texture:', firstClickedCube.textureName);
+                newCube = firstClickedCube.clone();
+                const whiteMaterial = new THREE.MeshPhongMaterial({color: 0xFFFFFF});
+                console.log(newCube.material);
+                var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + firstClickedCube.textureName + '.png');
+
+                var materialCube = [
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Right side
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Left side
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Bottom side
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Front side
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,})  // Back side
+                ];
+                newCube.material = materialCube;
+
+                newCube.position.copy(firstClickedCube.position);
+                newCube.rotation.copy(firstClickedCube.rotation);
+                newCube.scale.copy(firstClickedCube.scale);
+                scene.remove(firstClickedCube);
+                scene.add(newCube);
+
                 //highlightCube(firstClickedCube);
+            } else if (object === newCube){
+                scene.remove(newCube);
+                scene.add(firstClickedCube);
+                firstClickedCube = null;
+
             } else {
                 // Second click, compare texture names
                 console.log('Second clicked cube texture:', object.textureName);
                 if (firstClickedCube.textureName === object.textureName && firstClickedCube!=object) {
-                    checkIfSelectedCubesCanDisappear(firstClickedCube,object);
-
-                    console.log('Textures match!');
-
+                    if(checkIfSelectedCubesCanDisappear(newCube,object)) {
+                        scene.remove(newCube);
+                        console.log('Textures match!');
+                    }else{
+                        scene.remove(newCube);
+                        scene.add(firstClickedCube);
+                    }
                 } else {
                     console.log('Textures do not match.');
+                    scene.remove(newCube);
+                    scene.add(firstClickedCube);
                     //unhighlightCube(firstClickedCube);
                 }
 
@@ -612,7 +647,6 @@ function addObjects() {
                 deckcount++;
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
-                var backgroundTexture = new THREE.ImageUtils.loadTexture('texture/tiles/Haku.png');
                 var materialCube = [
                     new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
                     new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
@@ -848,12 +882,12 @@ function addObjectsPyramide() {
                     var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                     var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                     var materialCube = [
-                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
-                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
                         new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
-                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
-                        new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}),  // Back side
                     ];
 
                     // Calculate the offsets for positioning each layer
