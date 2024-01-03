@@ -131,8 +131,9 @@ class Game {
     }
 
     newGame() {
-        this.init();
-        this.updateCubeTextures(); // Add this line to update the Three.js scene after initializing a new game
+        window.location.href = 'index.html';
+        //this.init();
+        //this.updateCubeTextures(); // Add this line to update the Three.js scene after initializing a new game
     }
     // Check if a move is valid
     isValidMove(tile1, tile2) {
@@ -167,18 +168,7 @@ class Game {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-    /*    updateCubeTextures() {
-            const cubes = scene.children.filter(obj => obj.name === 'cube');
-            let deck1 = this.deck;
-            console.log(this.deck);
-            cubes.forEach(cube => {
-                const newTexture = deck1.pop();
-                cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + newTexture + '.png');
-                //console.log(cube.textureName)
-                cube.textureName = newTexture;
-                //console.log(cube.textureName)
-            });
-        }*/
+
     updateScene() {
         // Clear existing cubes from the scene
         scene.children.forEach((child) => {
@@ -523,12 +513,8 @@ function init(pyramide) {
 
 
     gui.add(buttonObject, 'clickButton').name('Reshuffle');
-    gui.add(buttonObject1, 'clickButton').name('New Game');
+    gui.add(buttonObject1, 'clickButton').name('Exit');
     gui.add(textureNameObject, 'textureName').name('Clicked Texture');
-
-
-
-
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
@@ -556,9 +542,19 @@ function render() {
     controls.update();
     renderer.domElement.addEventListener('mousedown', onCubeClick);
 
+    checkIfGameIsFinished();
+
 }
 function gameMap(x,y){
 //    maparray=[[0,0][0,1][]]
+}
+
+function checkIfGameIsFinished(){
+    const cubes = scene.children.filter(obj => obj.name === 'cube');
+    if(cubes.length <= 0){
+        console.log("game won");
+        window.location.href = 'gameFinished.html';
+    }
 }
 
 function addObjects() {
