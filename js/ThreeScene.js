@@ -472,29 +472,31 @@ function onCubeClick(event) {
             if (!firstClickedCube) {
                 // First click, store the texture name
                 firstClickedCube = object;
+                if(!areCubesAroundRemovedCube(firstClickedCube,object) > 0 && !areCubesAboveRemovedCube(firstClickedCube,object) > 0) {
+                    console.log('First clicked cube texture:', firstClickedCube.textureName);
+                    newCube = firstClickedCube.clone();
+                    const whiteMaterial = new THREE.MeshPhongMaterial({color: 0xFFFFFF});
+                    console.log(newCube.material);
+                    var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + firstClickedCube.textureName + '.png');
 
-                console.log('First clicked cube texture:', firstClickedCube.textureName);
-                newCube = firstClickedCube.clone();
-                const whiteMaterial = new THREE.MeshPhongMaterial({color: 0xFFFFFF});
-                console.log(newCube.material);
-                var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + firstClickedCube.textureName + '.png');
+                    var materialCube = [
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Right side
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Left side
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Bottom side
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Front side
+                        new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,})  // Back side
+                    ];
+                    newCube.material = materialCube;
 
-                var materialCube = [
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Right side
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Left side
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Bottom side
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,}), // Front side
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF, side: THREE.DoubleSide,})  // Back side
-                ];
-                newCube.material = materialCube;
-
-                newCube.position.copy(firstClickedCube.position);
-                newCube.rotation.copy(firstClickedCube.rotation);
-                newCube.scale.copy(firstClickedCube.scale);
-                scene.remove(firstClickedCube);
-                scene.add(newCube);
-
+                    newCube.position.copy(firstClickedCube.position);
+                    newCube.rotation.copy(firstClickedCube.rotation);
+                    newCube.scale.copy(firstClickedCube.scale);
+                    scene.remove(firstClickedCube);
+                    scene.add(newCube);
+                }else{
+                    firstClickedCube = null;
+                }
                 //highlightCube(firstClickedCube);
             } else if (object === newCube){
                 scene.remove(newCube);
