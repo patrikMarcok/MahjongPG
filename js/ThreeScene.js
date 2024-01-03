@@ -569,7 +569,7 @@ function render() {
     camera.lookAt(scene.position);
 
     controls.update();
-    renderer.domElement.addEventListener('click', onCubeClick);
+    renderer.domElement.addEventListener('mousedown', onCubeClick);
 
 }
 function gameMap(x,y){
