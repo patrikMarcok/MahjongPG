@@ -38,9 +38,13 @@
 </head>
 <body>
 <div id="banner">
-	<h1>Welcome to Your Game</h1>
+	<h1>Welcome to Mahjong</h1>
 	<p>Get ready for an exciting adventure!</p>
-	<button onclick="startGame()">Play Now</button>
+	<button onclick="startGamePyramide()">Play Now Pyramide</button>
+	<br>
+	<button onclick="startGameTurtle()">Play Now Turtle</button>
+	<br>
+	<a href="about.html">About the Game</a>
 </div>
 
 <div id="canvasContainer">
@@ -51,11 +55,10 @@
 <script src="js/threejs/js/controls/OrbitControls.js"></script>
 <script src="js/datGUI/dat.gui.min.js"></script>
 <script src="js/ThreeScene.js"></script>
-
 <script>
 	var gameInitialized = false;
 
-	function startGame() {
+	function startGameTurtle() {
 		if (!gameInitialized) {
 			// Hide the welcome banner
 			document.getElementById('banner').style.display = 'none';
@@ -64,7 +67,27 @@
 			document.getElementById('canvasContainer').style.display = 'block';
 
 			// Initialize and render the game only once
-			init();
+			init(pyramide=false);
+			render();
+
+			gameInitialized = true;
+		}
+	}
+</script>
+
+<script>
+	var gameInitialized = false;
+
+	function startGamePyramide() {
+		if (!gameInitialized) {
+			// Hide the welcome banner
+			document.getElementById('banner').style.display = 'none';
+
+			// Show the Three.js canvas container
+			document.getElementById('canvasContainer').style.display = 'block';
+
+			// Initialize and render the game only once
+			init(pyramide=true);
 			render();
 
 			gameInitialized = true;

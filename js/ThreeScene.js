@@ -148,7 +148,7 @@ class Game {
     updateCubeTextures() {
         const cubes = scene.children.filter(obj => obj.name === 'cube');
         console.log(cubes.length);
-       // let shuffledTextures = [...this.deck]; // Create a copy of the deck
+        // let shuffledTextures = [...this.deck]; // Create a copy of the deck
         //toto tu preco
         //this.shuffleArray(game.deck); // Shuffle the copy, not the original deck
 
@@ -167,18 +167,18 @@ class Game {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-/*    updateCubeTextures() {
-        const cubes = scene.children.filter(obj => obj.name === 'cube');
-        let deck1 = this.deck;
-        console.log(this.deck);
-        cubes.forEach(cube => {
-            const newTexture = deck1.pop();
-            cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + newTexture + '.png');
-            //console.log(cube.textureName)
-            cube.textureName = newTexture;
-            //console.log(cube.textureName)
-        });
-    }*/
+    /*    updateCubeTextures() {
+            const cubes = scene.children.filter(obj => obj.name === 'cube');
+            let deck1 = this.deck;
+            console.log(this.deck);
+            cubes.forEach(cube => {
+                const newTexture = deck1.pop();
+                cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + newTexture + '.png');
+                //console.log(cube.textureName)
+                cube.textureName = newTexture;
+                //console.log(cube.textureName)
+            });
+        }*/
     updateScene() {
         // Clear existing cubes from the scene
         scene.children.forEach((child) => {
@@ -453,7 +453,7 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
     //console.log("pos1y" + cube1.position.y);
     //console.log("pos1z" + cube1.position.z);
 
-  //  console.log("pos2x" + cube2.position.x);
+    //  console.log("pos2x" + cube2.position.x);
 //    console.log("pos2y" + cube2.position.y);
     //console.log("pos2z" + cube2.position.z);
 
@@ -529,7 +529,7 @@ function highlightCube(cube) {
 function unhighlightCube(cube) {
     cube.material.color.set(0xffffff); // Reset color to white as an example
 }
-function init() {
+function init(pyramide) {
     camera = new THREE.PerspectiveCamera(
         70,
         window.innerWidth / window.innerHeight,
@@ -558,8 +558,13 @@ function init() {
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    addObjects();
-   // simulateGame(scene, game);
+    console.log(pyramide);
+    if(pyramide){
+        addObjectsPyramide()
+    }else {
+        addObjects();
+    }
+    // simulateGame(scene, game);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
 
@@ -569,7 +574,7 @@ function render() {
     camera.lookAt(scene.position);
 
     controls.update();
-    renderer.domElement.addEventListener('mousedown', onCubeClick);
+    renderer.domElement.addEventListener('click', onCubeClick);
 
 }
 function gameMap(x,y){
@@ -597,42 +602,6 @@ function addObjects() {
     let deckcount = 0;
     let offsetX, offsetY, offsetZ;
 
-
-    // Assuming the base layer is a 12x8 rectangle with the center 4 tiles removed
-    /*for (let row = 0; row < 12; row++) {
-        for (let col = 0; col < 8; col++) {
-            // Skip the center 4 tiles
-            if (row >= 3 && row <= 4 && col >= 4 && col <= 7) {
-                continue;
-            }
-
-            if (deckcount >= game.deck.length) {
-                break;
-            }
-
-            let tile = game.deck[deckcount++];
-            var geometryCube = new THREE.BoxGeometry(0.8, 0.4, 0.9);
-            var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
-            var materialCube = [
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Right side
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Left side
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a, map: cubeTexture }), // Top side
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Bottom side
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Front side
-                new THREE.MeshBasicMaterial({ color: 0xe8c17a })  // Back side
-            ];
-
-            offsetX = (col - 6) * tileWidth; // Centering the layout on the X-axis
-            offsetY = 0; // Base layer is at the bottom
-            offsetZ = (row - 4) * tileDepth; // Centering the layout on the Z-axis
-
-            let cube = new THREE.Mesh(geometryCube, materialCube);
-            cube.position.set(offsetX, offsetY, offsetZ);
-            cube.textureName = tile;
-            scene.add(cube);
-            }
-        }*/
-    // Define the number of tiles in each subsequent layer
 
     let layerDefinitions = [
         {rows: 6,cols: 8, firstLayer: true, centerRows: [2,3], centerCols:[3,4] },
@@ -668,21 +637,18 @@ function addObjects() {
                 deckcount++;
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
-                var backgroundTexture = new THREE.ImageUtils.loadTexture('texture/tiles/Haku.png');
                 var materialCube = [
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
                     new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
                 ];
 
                 // Calculate the offsets for positioning each layer
                 offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
-
-                    offsetY = layerHeight * (layerIndex - 5) + 0.01 * layerIndex; // Stack layers on top of each other
-
+                offsetY = layerHeight * (layerIndex - 5); // Stack layers on top of each other
                 offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * (tileDepth + gap);
 
                 let cube = new THREE.Mesh(geometryCube, materialCube);
@@ -726,12 +692,12 @@ function addObjects() {
                         var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                         var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                         var materialCube = [
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
                             new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
                         ];
 
                         // Calculate the offsets for positioning each layer
@@ -747,7 +713,7 @@ function addObjects() {
                         } else if (layerIndex === 10 ) {
                             offsetX = ((col - (layerDef.cols / 2)) - 6) * (tileWidth + gap);
                         } else if (layerIndex === 11 ) {
-                                offsetX = ((col - (layerDef.cols / 2)) + 7.5 ) * (tileWidth + gap);
+                            offsetX = ((col - (layerDef.cols / 2)) + 7.5 ) * (tileWidth + gap);
 
                         } else {
                             offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
@@ -846,7 +812,185 @@ function addObjects() {
 
 }
 
+function addObjectsPyramide() {
+
+        var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+        var materialPlane = new THREE.MeshPhongMaterial({
+            color: 0x747570,
+            side: THREE.DoubleSide
+        });
+        plane = new THREE.Mesh(geometryPlane, materialPlane);
+        plane.position.set(0, -2.2, 0);
+        plane.rotation.x = Math.PI / 2;
+        plane.receiveShadow = true;
+        scene.add(plane);
+        var geometrySphere = new THREE.SphereGeometry(100, 100, 100);
+        var sphereTexture = new THREE.ImageUtils.loadTexture('texture/sky.jpg');
+        var materialSphere = new THREE.MeshBasicMaterial({ map: sphereTexture, transparent: true, side: THREE.DoubleSide });
+        sphere = new THREE.Mesh(geometrySphere, materialSphere);
+        sphere.position.set(0, 0, 0);
+        scene.add(sphere);
+
+        let deckcount = 0;
+        let offsetX, offsetY, offsetZ;
 
 
-//init();
-//render();
+        // Assuming the base layer is a 12x8 rectangle with the center 4 tiles removed
+        /*for (let row = 0; row < 12; row++) {
+            for (let col = 0; col < 8; col++) {
+                // Skip the center 4 tiles
+                if (row >= 3 && row <= 4 && col >= 4 && col <= 7) {
+                    continue;
+                }
+
+                if (deckcount >= game.deck.length) {
+                    break;
+                }
+
+                let tile = game.deck[deckcount++];
+                var geometryCube = new THREE.BoxGeometry(0.8, 0.4, 0.9);
+                var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
+                var materialCube = [
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Right side
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Left side
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a, map: cubeTexture }), // Top side
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Bottom side
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Front side
+                    new THREE.MeshBasicMaterial({ color: 0xe8c17a })  // Back side
+                ];
+
+                offsetX = (col - 6) * tileWidth; // Centering the layout on the X-axis
+                offsetY = 0; // Base layer is at the bottom
+                offsetZ = (row - 4) * tileDepth; // Centering the layout on the Z-axis
+
+                let cube = new THREE.Mesh(geometryCube, materialCube);
+                cube.position.set(offsetX, offsetY, offsetZ);
+                cube.textureName = tile;
+                scene.add(cube);
+                }
+            }*/
+        // Define the number of tiles in each subsequent layer
+
+        let layerDefinitions = [
+            {rows: 11,cols: 8, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
+            // Second layer dimensions
+            { rows: 7, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
+            // Third layer dimensions
+            { rows: 5, cols: 4, skipCenter: false },
+            // Fourth layer dimensions
+            { rows: 2, cols: 2, skipCenter: false },
+            // Fifth layer (single tile on top)
+            //{ rows: 1, cols: 1, skipCenter: false }
+        ];
+
+// The height of each layer, assuming each tile is offset upwards by the height of the tile below it
+        let layerHeight = tileHeight;
+// Define a small constant for the gap
+        const gap = 0.05;
+
+        layerDefinitions.forEach((layerDef, layerIndex) => {
+            for (let row = 0; row < layerDef.rows; row++) {
+                for (let col = 0; col < layerDef.cols; col++) {
+                    // Skip the center if required by the current layer definition
+                    if (layerDef.skipCenter && layerDef.centerRows.includes(row) && layerDef.centerCols.includes(col)) {
+                        continue;
+                    }
+
+                    if (deckcount >= game.deck.length) {
+                        console.log("Error!")
+                        break;
+                    }
+
+                    let tile = game.deck[deckcount];
+                    deckcount++;
+                    var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
+                    var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
+                    var materialCube = [
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
+                        new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                    ];
+
+                    // Calculate the offsets for positioning each layer
+                    offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
+                    offsetY = layerHeight * (layerIndex - 5); // Stack layers on top of each other
+                    offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * (tileDepth + gap);
+
+                    let cube = new THREE.Mesh(geometryCube, materialCube);
+                    cube.position.set(offsetX, offsetY, offsetZ);
+                    cube.textureName = tile;
+                    cube.name = 'cube';
+                    cube.castShadow = true;
+                    cube.receiveShadow = true;
+                    scene.add(cube);
+                }
+            }
+        });
+
+        const cubes = scene.children.filter(obj => obj.name === 'cube');
+        console.log('cubes length ' + cubes.length);
+
+        var pointLight = new THREE.PointLight(0xffffff, 2, 23);
+        var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
+        var pointLight3 = new THREE.PointLight(0xffffff, 2, 23);
+        var pointLight4 = new THREE.PointLight(0xffffff, 2, 23);
+        var centerLight = new THREE.PointLight(0xffffff, 2, 5);
+
+        centerLight.position.set(0, 10, 0);
+        centerLight.castShadow = true;
+        centerLight.shadow.mapSize.width = 1000;
+        centerLight.shadow.mapSize.height = 1000;
+        centerLight.shadow.camera.near = 0.5;
+        centerLight.shadow.camera.far = 500;
+        centerLight.shadow.bias = -0.001;
+
+
+        pointLight.position.set(-10, 10, 10   );
+        pointLight.castShadow = true;
+        pointLight.shadow.mapSize.width = 1000;
+        pointLight.shadow.mapSize.height = 1000;
+        pointLight.shadow.camera.near = 0.5;
+        pointLight.shadow.camera.far = 500;
+        pointLight.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+
+        pointLight2.position.set(10, 10, 10);
+        pointLight2.castShadow = true;
+        pointLight2.shadow.mapSize.width = 1000;
+        pointLight2.shadow.mapSize.height = 1000;
+        pointLight2.shadow.camera.near = 0.5;
+        pointLight2.shadow.camera.far = 500;
+        pointLight2.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+
+        pointLight3.position.set(-10, 10, -10);
+        pointLight3.castShadow = true;
+        pointLight3.shadow.mapSize.width = 1000;
+        pointLight3.shadow.mapSize.height = 1000;
+        pointLight3.shadow.camera.near = 0.5;
+        pointLight3.shadow.camera.far = 500;
+        pointLight3.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+
+        pointLight4.position.set(10, 10, -10);
+        pointLight4.castShadow = true;
+        pointLight4.shadow.mapSize.width = 1000;
+        pointLight4.shadow.mapSize.height = 1000;
+        pointLight4.shadow.camera.near = 0.5;
+        pointLight4.shadow.camera.far = 500;
+        pointLight4.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+
+        var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
+        scene.add(ambientLight);
+        scene.add(centerLight);
+        scene.add(pointLight);
+        scene.add(pointLight2);
+        scene.add(pointLight3);
+        scene.add(pointLight4);
+
+        var helper = new THREE.CameraHelper(centerLight.shadow.camera);
+        //scene.add(helper);
+
+    }
+
+
