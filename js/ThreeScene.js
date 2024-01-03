@@ -323,8 +323,10 @@ function areCubesAroundRemovedCube(cube1, cube2) {
 
     // Directions for the four side rays
     const directions = [
-        new THREE.Vector3(1, 0, 0),  // +x (right)
-        new THREE.Vector3(-1, 0, 0), // -x (left)
+        { direction: new THREE.Vector3(1, 0, 0), offsetZ: 0.2, side: "right"},
+        { direction: new THREE.Vector3(1, 0, 0), offsetZ: -0.2, side: "right"},
+        { direction: new THREE.Vector3(-1, 0, 0), offsetZ: -0.2, side: "left"},
+        { direction: new THREE.Vector3(-1, 0, 0), offsetZ: 0.2, side: "left"},
     ];
 
     // Function to get the world position of the cube's side center
@@ -342,26 +344,32 @@ function areCubesAroundRemovedCube(cube1, cube2) {
 
     // Check each direction for each cube
     [cube1, cube2].forEach((cube) => {
-        let sidesFree = 0; // Counter for free sides
+        let sideFreeLeft = 0; // Counter for free sides
+        let sideFreeRight = 0; // Counter for free sides
         directions.forEach((dir) => {
             // Get the starting position for the ray
-            const start = getSideCenterPosition(cube, dir);
-
+            const start = getSideCenterPosition(cube, dir.direction);
+            console.log(start);
             // Set the raycaster
-            raycaster.set(start, dir);
+            start.z = start.z + dir.offsetZ;
+            raycaster.set(start, dir.direction);
 
             // Calculate objects intersecting the picking ray
             const intersects = raycaster.intersectObjects(scene.children, true).filter(intersectedObj => intersectedObj.object !== cube1 && intersectedObj.object !== cube2);
 
             // If no intersected object is within closeDistanceThreshold, it's a free side
             if (intersects.length === 0 || intersects[0].distance > closeDistanceThreshold) {
-                sidesFree++;
+                if (dir.side === "left") {
+                    sideFreeLeft++;
+                } else {
+                    sideFreeRight++;
+                }
             }
         });
 
 
-        if (sidesFree > 0) {
-            console.log("Sides free: " + sidesFree);
+        if (sideFreeLeft === 2 || sideFreeRight === 2) {
+            console.log("Sides free: " + sideFreeLeft + " " + sideFreeRight);
             cubesFree++;
         }
     });
@@ -627,15 +635,15 @@ function addObjects() {
     // Define the number of tiles in each subsequent layer
 
     let layerDefinitions = [
-        {rows: 11,cols: 8, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
+        {rows: 6,cols: 8, firstLayer: true, centerRows: [2,3], centerCols:[3,4] },
         // Second layer dimensions
-        { rows: 7, cols: 6, skipCenter: true, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
+        { rows: 6, cols: 6, skipCenter: false, centerRows: [2, 3], centerCols: [4, 5, 6, 7] },
         // Third layer dimensions
-        { rows: 5, cols: 4, skipCenter: false },
+        { rows: 4, cols: 4, skipCenter: false },
         // Fourth layer dimensions
         { rows: 2, cols: 2, skipCenter: false },
         // Fifth layer (single tile on top)
-        //{ rows: 1, cols: 1, skipCenter: false }
+        { rows: 1, cols: 1, skipCenter: false }
     ];
 
 // The height of each layer, assuming each tile is offset upwards by the height of the tile below it
@@ -683,6 +691,93 @@ function addObjects() {
                 scene.add(cube);
             }
         }
+        if(layerDef.firstLayer){
+            let customLayers = [
+                { rows: 1, cols: 12, skipCenter: false },
+                { rows: 1, cols: 12, skipCenter: false },
+                { rows: 1, cols: 1, skipCenter: false },
+                { rows: 1, cols: 2, skipCenter: false },
+                { rows: 1, cols: 2, skipCenter: false },
+                { rows: 1, cols: 1, skipCenter: false },
+                { rows: 1, cols: 1, skipCenter: false },
+                { rows: 1, cols: 2, skipCenter: false },
+                { rows: 1, cols: 2, skipCenter: false },
+                { rows: 1, cols: 1, skipCenter: false },
+                { rows: 1, cols: 1, skipCenter: false },
+                { rows: 1, cols: 2, skipCenter: false },]
+            customLayers.forEach((layerDef, layerIndex) => {
+                for (let row = 0; row < layerDef.rows; row++) {
+                    for (let col = 0; col < layerDef.cols; col++) {
+                        // Skip the center if required by the current layer definition
+                        if (layerDef.skipCenter && layerDef.centerRows.includes(row) && layerDef.centerCols.includes(col)) {
+                            continue;
+                        }
+
+                        if (deckcount >= game.deck.length) {
+                            console.log("Error!")
+                            break;
+                        }
+
+                        let tile = game.deck[deckcount];
+                        deckcount++;
+                        var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
+                        var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
+                        var materialCube = [
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                        ];
+
+                        // Calculate the offsets for positioning each layer
+                        if (layerIndex === 2 || layerIndex === 5) {
+                            offsetX = ((col - (layerDef.cols / 2)) - 4) * (tileWidth + gap);
+                        } else if (layerIndex === 3 || layerIndex === 4) {
+                            offsetX = ((col - (layerDef.cols / 2)) - 4.5 ) * (tileWidth + gap);
+                        } else if (layerIndex === 6 || layerIndex === 9) {
+                            offsetX = ((col - (layerDef.cols / 2)) + 5 ) * (tileWidth + gap);
+
+                        } else if (layerIndex === 7 || layerIndex === 8) {
+                            offsetX = ((col - (layerDef.cols / 2)) + 5.5 ) * (tileWidth + gap);
+                        } else if (layerIndex === 10 ) {
+                            offsetX = ((col - (layerDef.cols / 2)) - 6) * (tileWidth + gap);
+                        } else if (layerIndex === 11 ) {
+                                offsetX = ((col - (layerDef.cols / 2)) + 7.5 ) * (tileWidth + gap);
+
+                        } else {
+                            offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
+                        }
+                        if (layerIndex === 0) {
+                            offsetZ = ((row - (layerDef.rows / 2)) + 4) * (tileDepth + gap);
+                        } else if (layerIndex === 1) {
+                            offsetZ = ((row - (layerDef.rows / 2)) - 3) * (tileDepth + gap);
+                        } else if (layerIndex === 2 || layerIndex === 6) {
+                            offsetZ = ((row - (layerDef.rows / 2)) - 1) * (tileDepth + gap);
+                        } else if (layerIndex === 3 || layerIndex === 7) {
+                            offsetZ = ((row - (layerDef.rows / 2))  ) * (tileDepth + gap);
+                        } else if (layerIndex === 4 || layerIndex === 8) {
+                            offsetZ = ((row - (layerDef.rows / 2)) + 1) * (tileDepth + gap);
+                        } else if (layerIndex === 5 || layerIndex === 9) {
+                            offsetZ = ((row - (layerDef.rows / 2)) + 2) * (tileDepth + gap);
+                        } else if (layerIndex === 10 || layerIndex === 11) {
+                            offsetZ = ((row - (layerDef.rows / 2)) + 0.5 ) * (tileDepth + gap);
+                        }
+                        let cube = new THREE.Mesh(geometryCube, materialCube);
+                        cube.position.set(offsetX, offsetY, offsetZ);
+                        cube.textureName = tile;
+                        cube.name = 'cube';
+                        cube.castShadow = true;
+                        cube.receiveShadow = true;
+                        scene.add(cube);
+                    }
+                }
+            });
+
+        }
+
+
     });
 
     const cubes = scene.children.filter(obj => obj.name === 'cube');
