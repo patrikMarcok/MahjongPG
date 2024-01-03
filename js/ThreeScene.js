@@ -447,23 +447,8 @@ function isTileOnBoard(scene, tile) {
 
 
 function checkIfSelectedCubesCanDisappear(cube1,cube2){
-
-
-    //console.log("pos1x" + cube1.position.x);
-    //console.log("pos1y" + cube1.position.y);
-    //console.log("pos1z" + cube1.position.z);
-
-    //  console.log("pos2x" + cube2.position.x);
-//    console.log("pos2y" + cube2.position.y);
-    //console.log("pos2z" + cube2.position.z);
-
     const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
     const cubesAround = areCubesAroundRemovedCube(cube1, cube2);
-
-    //const cubesAround1 = areCubesAroundRemovedCube(cube1);
-    //const cubesAround2 = areCubesAroundRemovedCube(cube2);
-
-    //let cubesAround = false;
     if (!cubesAbove && !cubesAround) {
         // There are no cubes above the removed cubes
         console.log("There are no cubes above the removed cubes.");
@@ -482,15 +467,10 @@ function checkIfSelectedCubesCanDisappear(cube1,cube2){
 function onCubeClick(event) {
     event.preventDefault();
 
-    // Calculate mouse position in normalized device coordinates
-    // (-1 to +1) for both components.
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-
-    // Intersect objects in the scene
-    // const intersects = raycaster.intersectObjects(scene.children);
     const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.name === 'cube'));
     if (intersects.length > 0) {
         const object = intersects[0].object;
@@ -498,7 +478,6 @@ function onCubeClick(event) {
             textureNameObject.textureName = object.textureName;
             if (!firstClickedCube) {
                 // First click, store the texture name
-
                 firstClickedCube = object;
                 console.log('First clicked cube texture:', firstClickedCube.textureName);
                 //highlightCube(firstClickedCube);
@@ -558,12 +537,13 @@ function init(pyramide) {
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    console.log(pyramide);
+
     if(pyramide){
         addObjectsPyramide()
     }else {
         addObjects();
     }
+
     // simulateGame(scene, game);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
@@ -574,7 +554,7 @@ function render() {
     camera.lookAt(scene.position);
 
     controls.update();
-    renderer.domElement.addEventListener('click', onCubeClick);
+    renderer.domElement.addEventListener('mousedown', onCubeClick);
 
 }
 function gameMap(x,y){
@@ -601,7 +581,6 @@ function addObjects() {
 
     let deckcount = 0;
     let offsetX, offsetY, offsetZ;
-
 
     let layerDefinitions = [
         {rows: 6,cols: 8, firstLayer: true, centerRows: [2,3], centerCols:[3,4] },
@@ -637,18 +616,21 @@ function addObjects() {
                 deckcount++;
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
+                var backgroundTexture = new THREE.ImageUtils.loadTexture('texture/tiles/Haku.png');
                 var materialCube = [
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
                     new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
                 ];
 
                 // Calculate the offsets for positioning each layer
                 offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
-                offsetY = layerHeight * (layerIndex - 5); // Stack layers on top of each other
+
+                offsetY = layerHeight * (layerIndex - 5) + 0.01 * layerIndex; // Stack layers on top of each other
+
                 offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * (tileDepth + gap);
 
                 let cube = new THREE.Mesh(geometryCube, materialCube);
@@ -692,12 +674,12 @@ function addObjects() {
                         var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                         var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                         var materialCube = [
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
                             new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
                         ];
 
                         // Calculate the offsets for positioning each layer
@@ -812,6 +794,7 @@ function addObjects() {
 
 }
 
+
 function addObjectsPyramide() {
 
         var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
@@ -833,43 +816,6 @@ function addObjectsPyramide() {
 
         let deckcount = 0;
         let offsetX, offsetY, offsetZ;
-
-
-        // Assuming the base layer is a 12x8 rectangle with the center 4 tiles removed
-        /*for (let row = 0; row < 12; row++) {
-            for (let col = 0; col < 8; col++) {
-                // Skip the center 4 tiles
-                if (row >= 3 && row <= 4 && col >= 4 && col <= 7) {
-                    continue;
-                }
-
-                if (deckcount >= game.deck.length) {
-                    break;
-                }
-
-                let tile = game.deck[deckcount++];
-                var geometryCube = new THREE.BoxGeometry(0.8, 0.4, 0.9);
-                var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
-                var materialCube = [
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Right side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Left side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a, map: cubeTexture }), // Top side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Bottom side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a }), // Front side
-                    new THREE.MeshBasicMaterial({ color: 0xe8c17a })  // Back side
-                ];
-
-                offsetX = (col - 6) * tileWidth; // Centering the layout on the X-axis
-                offsetY = 0; // Base layer is at the bottom
-                offsetZ = (row - 4) * tileDepth; // Centering the layout on the Z-axis
-
-                let cube = new THREE.Mesh(geometryCube, materialCube);
-                cube.position.set(offsetX, offsetY, offsetZ);
-                cube.textureName = tile;
-                scene.add(cube);
-                }
-            }*/
-        // Define the number of tiles in each subsequent layer
 
         let layerDefinitions = [
             {rows: 11,cols: 8, skipCenter: true, centerRows: [2,3], centerCols:[3,4] },
