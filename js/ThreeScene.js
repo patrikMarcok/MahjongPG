@@ -668,18 +668,21 @@ function addObjects() {
                 deckcount++;
                 var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                 var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
+                var backgroundTexture = new THREE.ImageUtils.loadTexture('texture/tiles/Haku.png');
                 var materialCube = [
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
                     new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
-                    new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
+                    new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
                 ];
 
                 // Calculate the offsets for positioning each layer
                 offsetX = ((col - (layerDef.cols / 2)) + 0.5) * (tileWidth + gap);
-                offsetY = layerHeight * (layerIndex - 5); // Stack layers on top of each other
+
+                    offsetY = layerHeight * (layerIndex - 5) + 0.01 * layerIndex; // Stack layers on top of each other
+
                 offsetZ = ((row - (layerDef.rows / 2)) + 0.5) * (tileDepth + gap);
 
                 let cube = new THREE.Mesh(geometryCube, materialCube);
@@ -723,12 +726,12 @@ function addObjects() {
                         var geometryCube = new THREE.BoxGeometry(tileWidth, tileHeight, tileDepth);
                         var cubeTexture = new THREE.ImageUtils.loadTexture('texture/tiles/' + tile + '.png');
                         var materialCube = [
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Right side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Left side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Right side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Left side
                             new THREE.MeshPhongMaterial({color: 0xe8c17a, map: cubeTexture, side: THREE.DoubleSide,}), // Top side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Bottom side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a}), // Front side
-                            new THREE.MeshPhongMaterial({color: 0xe8c17a})  // Back side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Bottom side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,}), // Front side
+                            new THREE.MeshPhongMaterial({color: 0xe8c17a, map: backgroundTexture, side: THREE.DoubleSide,})  // Back side
                         ];
 
                         // Calculate the offsets for positioning each layer
