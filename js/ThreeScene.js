@@ -551,7 +551,7 @@ function init(pyramide) {
 
     gui.add(buttonObject, 'clickButton').name('Reshuffle');
     gui.add(buttonObject1, 'clickButton').name('Exit');
-    gui.add(textureNameObject, 'textureName').name('Clicked Texture');
+    //gui.add(textureNameObject, 'textureName').name('Clicked Texture');
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
@@ -560,7 +560,7 @@ function init(pyramide) {
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xADD8E6); // Example: a soft blue background color
+    //scene.background = new THREE.Color(0xADD8E6); // Example: a soft blue background color
 
     if(pyramide){
         addObjectsPyramide()
