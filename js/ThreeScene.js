@@ -541,7 +541,7 @@ function init(pyramide) {
         window.innerWidth / window.innerHeight,
         0.01,
         1000);
-    camera.position.set(0, 5, 5);
+    camera.position.set(0, 5, 1.2);
     var gui = new dat.GUI();
 
 // Add a button to the GUI
@@ -560,6 +560,7 @@ function init(pyramide) {
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xADD8E6); // Example: a soft blue background color
 
     if(pyramide){
         addObjectsPyramide()
@@ -569,6 +570,11 @@ function init(pyramide) {
 
     // simulateGame(scene, game);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.minDistance = 5;
+    controls.maxDistance = 14
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.enablePan = false;
+
 }
 
 function render() {
@@ -596,21 +602,52 @@ function checkIfGameIsFinished(){
 
 function addObjects() {
     var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+    var matTexture = new THREE.ImageUtils.loadTexture('texture/green_mat2.jpg');
     var materialPlane = new THREE.MeshPhongMaterial({
         color: 0x747570,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        map: matTexture,
+        shininess: 0
     });
     plane = new THREE.Mesh(geometryPlane, materialPlane);
     plane.position.set(0, -2.2, 0);
     plane.rotation.x = Math.PI / 2;
     plane.receiveShadow = true;
     scene.add(plane);
-    var geometrySphere = new THREE.SphereGeometry(100, 100, 100);
-    var sphereTexture = new THREE.ImageUtils.loadTexture('texture/sky.jpg');
-    var materialSphere = new THREE.MeshBasicMaterial({ map: sphereTexture, transparent: true, side: THREE.DoubleSide });
-    sphere = new THREE.Mesh(geometrySphere, materialSphere);
-    sphere.position.set(0, 0, 0);
-    scene.add(sphere);
+
+    var planeWidth = 20;
+    var planeHeight = 20;
+    var borderWidth = 1;  // Width of the border geometry
+    var borderHeight = 0.5;   // Height of the border geometry
+    var borderTexture = new THREE.ImageUtils.loadTexture('texture/wood.png');
+
+// Material for the border (can be the same as the plane or different)
+    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });  // Example: black color for the border
+
+// Function to create a single border segment
+    function createBorder(width, height, depth, position) {
+        var borderGeometry = new THREE.BoxGeometry(width, height, depth);
+        var borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
+        borderMesh.position.set(position.x, position.y, position.z); // Add a small offset to the y position
+        scene.add(borderMesh);
+    }
+
+// The y position of the borders should be half the border height if the plane is at y=0
+    var borderYPosition = -2.2 + borderHeight / 2;
+
+// Border positions based on the plane size
+    var borderPositions = [
+        { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: planeHeight / 2 + borderWidth / 2 } },
+        { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: -planeHeight / 2 - borderWidth / 2 } },
+        { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: -planeWidth / 2 - borderWidth / 2, y: borderYPosition, z: 0 } },
+        { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: planeWidth / 2 + borderWidth / 2, y: borderYPosition, z: 0 } }
+    ];
+
+// Create and position border segments using a loop
+    for (var i = 0; i < borderPositions.length; i++) {
+        var pos = borderPositions[i];
+        createBorder(pos.width, pos.height, pos.depth, pos.position);
+    }
 
     let deckcount = 0;
     let offsetX, offsetY, offsetZ;
@@ -770,16 +807,6 @@ function addObjects() {
     var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight3 = new THREE.PointLight(0xffffff, 2, 23);
     var pointLight4 = new THREE.PointLight(0xffffff, 2, 23);
-    var centerLight = new THREE.PointLight(0xffffff, 2, 5);
-
-    centerLight.position.set(0, 10, 0);
-    centerLight.castShadow = true;
-    centerLight.shadow.mapSize.width = 1000;
-    centerLight.shadow.mapSize.height = 1000;
-    centerLight.shadow.camera.near = 0.5;
-    centerLight.shadow.camera.far = 500;
-    centerLight.shadow.bias = -0.001;
-
 
     pointLight.position.set(-10, 10, 10   );
     pointLight.castShadow = true;
@@ -815,13 +842,11 @@ function addObjects() {
 
     var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
     scene.add(ambientLight);
-    scene.add(centerLight);
     scene.add(pointLight);
     scene.add(pointLight2);
     scene.add(pointLight3);
     scene.add(pointLight4);
 
-    var helper = new THREE.CameraHelper(centerLight.shadow.camera);
     //scene.add(helper);
 
 }
@@ -830,21 +855,53 @@ function addObjects() {
 function addObjectsPyramide() {
 
         var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+        var matTexture = new THREE.ImageUtils.loadTexture('texture/green_mat2.jpg');
         var materialPlane = new THREE.MeshPhongMaterial({
             color: 0x747570,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            map: matTexture,
+            shininess: 0
         });
         plane = new THREE.Mesh(geometryPlane, materialPlane);
+
         plane.position.set(0, -2.2, 0);
         plane.rotation.x = Math.PI / 2;
         plane.receiveShadow = true;
         scene.add(plane);
-        var geometrySphere = new THREE.SphereGeometry(100, 100, 100);
-        var sphereTexture = new THREE.ImageUtils.loadTexture('texture/sky.jpg');
-        var materialSphere = new THREE.MeshBasicMaterial({ map: sphereTexture, transparent: true, side: THREE.DoubleSide });
-        sphere = new THREE.Mesh(geometrySphere, materialSphere);
-        sphere.position.set(0, 0, 0);
-        scene.add(sphere);
+
+    var planeWidth = 20;
+    var planeHeight = 20;
+    var borderWidth = 1;  // Width of the border geometry
+    var borderHeight = 0.5;   // Height of the border geometry
+    var borderTexture = new THREE.ImageUtils.loadTexture('texture/wood.png');
+
+// Material for the border (can be the same as the plane or different)
+    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });  // Example: black color for the border
+
+// Function to create a single border segment
+    function createBorder(width, height, depth, position) {
+        var borderGeometry = new THREE.BoxGeometry(width, height, depth);
+        var borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
+        borderMesh.position.set(position.x, position.y, position.z); // Add a small offset to the y position
+        scene.add(borderMesh);
+    }
+
+// The y position of the borders should be half the border height if the plane is at y=0
+    var borderYPosition = -2.2 + borderHeight / 2;
+
+// Border positions based on the plane size
+    var borderPositions = [
+        { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: planeHeight / 2 + borderWidth / 2 } },
+        { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: -planeHeight / 2 - borderWidth / 2 } },
+        { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: -planeWidth / 2 - borderWidth / 2, y: borderYPosition, z: 0 } },
+        { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: planeWidth / 2 + borderWidth / 2, y: borderYPosition, z: 0 } }
+    ];
+
+// Create and position border segments using a loop
+    for (var i = 0; i < borderPositions.length; i++) {
+        var pos = borderPositions[i];
+        createBorder(pos.width, pos.height, pos.depth, pos.position);
+    }
 
         let deckcount = 0;
         let offsetX, offsetY, offsetZ;
@@ -915,16 +972,6 @@ function addObjectsPyramide() {
         var pointLight2 = new THREE.PointLight(0xffffff, 2, 23);
         var pointLight3 = new THREE.PointLight(0xffffff, 2, 23);
         var pointLight4 = new THREE.PointLight(0xffffff, 2, 23);
-        var centerLight = new THREE.PointLight(0xffffff, 2, 5);
-
-        centerLight.position.set(0, 10, 0);
-        centerLight.castShadow = true;
-        centerLight.shadow.mapSize.width = 1000;
-        centerLight.shadow.mapSize.height = 1000;
-        centerLight.shadow.camera.near = 0.5;
-        centerLight.shadow.camera.far = 500;
-        centerLight.shadow.bias = -0.001;
-
 
         pointLight.position.set(-10, 10, 10   );
         pointLight.castShadow = true;
@@ -960,13 +1007,12 @@ function addObjectsPyramide() {
 
         var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
         scene.add(ambientLight);
-        scene.add(centerLight);
         scene.add(pointLight);
         scene.add(pointLight2);
         scene.add(pointLight3);
         scene.add(pointLight4);
 
-        var helper = new THREE.CameraHelper(centerLight.shadow.camera);
+
         //scene.add(helper);
 
     }
