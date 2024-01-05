@@ -309,6 +309,7 @@ function onCubeClick(event) {
                     scene.remove(firstClickedCube);
                     scene.add(newCube);
                 }else{
+                    alert("There are tiles above or around the first tile!");
                     firstClickedCube = null;
                 }
                 //highlightCube(firstClickedCube);
