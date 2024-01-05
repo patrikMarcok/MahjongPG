@@ -47,36 +47,6 @@ const textureNames = [
     'Sou9',
     'Ton'
 ];
-// Now you can use this array in your code
-
-
-function isGamePlayable() {
-    let playable = false;
-    const cubes = scene.children.filter(obj => obj.name === 'cube');
-    // We'll use a nested loop to compare each cube with every other cube.
-    for (let i = 0; i < cubes.length - 1; i++) {
-        for (let j = i + 1; j < cubes.length; j++) {
-            if (cubes[i].textureName === cubes[j].textureName && checkIfSelectedCubesCanDisappear(cubes[i], cubes[j])) {
-                // If there's at least one pair that can be removed, the game is playable.
-                playable = true
-                //return true;
-                break;
-            }
-        }
-        if (playable) {
-            break;
-        }
-    }
-
-    if (!playable) {
-        // No more moves can be made with the current arrangement of cubes.
-        console.log('No more moves. Reshuffling...');
-        //game.reshuffleBoard();
-    } else {
-        console.log('The game is playable. Make your move.');
-    }
-    return playable;
-}
 
 class Game {
     constructor() {
@@ -91,11 +61,9 @@ class Game {
         //this.board = this.createBoard();
     }
 
-    // Create a deck of cards
+    // Create a deck of tiles
     createDeck() {
         let deck = [];
-        // In Mahjongg, there are 144 tiles, with 4 duplicates of each kind.
-        // Here, we'll just use numbers for simplicity.
         for (let i = 0; i < 36; i++) {
             for (let j = 0; j < 4; j++) {
                 deck.push(textureNames[i]);
@@ -115,32 +83,8 @@ class Game {
         return this.deck;
     }
 
-    // Create the board
-    createBoard() {
-        let board = [];
-        for (let i = 0; i < 4; i++) {
-            let row = [];
-            for (let j = 0; j < 6; j++) {
-                let line = [];
-                for (let k=0; k<6;k++){
-                    line.push(this.deck.pop());
-                    //console.log(this.deck[i][j][k]);
-                }
-                row.push(line);
-            }
-            board.push(row);
-        }
-        return board;
-    }
-
     newGame() {
         window.location.href = 'index.html';
-        //this.init();
-        //this.updateCubeTextures(); // Add this line to update the Three.js scene after initializing a new game
-    }
-    // Check if a move is valid
-    isValidMove(tile1, tile2) {
-        return tile1 === tile2;
     }
 
     reshuffleBoard() {
@@ -152,40 +96,13 @@ class Game {
     updateCubeTextures() {
         const cubes = scene.children.filter(obj => obj.name === 'cube');
         console.log(cubes.length);
-        // let shuffledTextures = [...this.deck]; // Create a copy of the deck
-        //toto tu preco
-        //this.shuffleArray(game.deck); // Shuffle the copy, not the original deck
 
         cubes.forEach((cube, index) => {
             const textureName = game.deck[index % game.deck.length];
-            //zeby sa neuklada spravne?
             cube.material[2].map = new THREE.ImageUtils.loadTexture('texture/tiles/' + textureName + '.png');
             cube.textureName = textureName;
         });
     }
-
-// Helper function to shuffle an array
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    updateScene() {
-        // Clear existing cubes from the scene
-        scene.children.forEach((child) => {
-            if (child.isMesh || child instanceof  THREE.PointLight
-                || child instanceof  THREE.AmbientLight || child instanceof  THREE.CameraHelper) {
-                scene.remove(child);
-            }
-        });
-        //addObjects();
-    }
-
-
-
-
 }
 
 // Create a new game
@@ -220,22 +137,15 @@ function areCubesAboveRemovedCube(cube1, cube2) {
     const direction = new THREE.Vector3(0, 1, 0); // Upwards direction
     const maxDistance = 1; // Max distance to check for an object above
 
-    // Dimensions of the cubes
-    const Width = 0.8;
-    const Height = 0.4;
-    const Depth = 0.9;
-
     // Calculate the offsets for the corners from the center
-    const halfWidth = Width * 0.5;
-    const halfDepth = Depth * 0.5;
-    const topY = Height * 0.5; // Since we want the top corners
+    const halfWidth = tileWidth * 0.5;
+    const halfDepth = tileDepth * 0.5;
 
     // Function to get the world position of the cube's corner
     const getCornerPosition = (cube, offsetX, offsetZ) => {
         const position = new THREE.Vector3();
         cube.getWorldPosition(position);
         position.x += offsetX;
-        position.y += topY;
         position.z += offsetZ;
         return position;
     };
@@ -258,7 +168,6 @@ function areCubesAboveRemovedCube(cube1, cube2) {
         raycaster.set(corner, direction);
 
         // Calculate objects intersecting the picking ray
-        //Ak su rovnake tak ze jedna je nad druhou tak to prejde treba fixnut?
         const intersects = raycaster.intersectObjects(scene.children, true).filter(intersectedObj => intersectedObj.object !== cube1 && intersectedObj.object !== cube2);
 
         // Check each intersection
@@ -282,34 +191,8 @@ function areCubesAboveRemovedCube(cube1, cube2) {
     return cubesAbove;
 }
 
-
-
-/*function areCubesAroundRemovedCube(cube1) {
-    scene.traverse((object) => {
-        if (object.isMesh && object !== cube1 && object !== cube2) {
-            if(object.position.y == cube1.position.y && object.position.z == cube1.position.z){
-                if((object.position.x - cube1.position.x) <= 0.8){
-                    console.log("in condition")
-                    return false;
-
-                }
-            }
-        }
-
-    });
-    return true;
-
-
-}*/
-
 function areCubesAroundRemovedCube(cube1, cube2) {
     let cubesFree = 0;
-
-
-    // Dimensions of the cubes
-    const Width = 0.8;
-    const Height = 0.4;
-    const Depth = 0.9;
 
     // The distance threshold for considering if there are cubes around
     const closeDistanceThreshold = 0.2;
@@ -326,9 +209,9 @@ function areCubesAroundRemovedCube(cube1, cube2) {
     const getSideCenterPosition = (cube, dir) => {
         const position = new THREE.Vector3();
         cube.getWorldPosition(position);
-        position.x += dir.x * Width * 0.5;
-        position.y += Height * 0.5; // Centered vertically in the cube
-        position.z += dir.z * Depth * 0.5;
+        position.x += dir.x * tileWidth * 0.5;
+        position.y += tileHeight * 0.5; // Centered vertically in the cube
+        position.z += dir.z * tileDepth * 0.5;
         return position;
     };
 
@@ -337,8 +220,8 @@ function areCubesAroundRemovedCube(cube1, cube2) {
 
     // Check each direction for each cube
     [cube1, cube2].forEach((cube) => {
-        let sideFreeLeft = 0; // Counter for free sides
-        let sideFreeRight = 0; // Counter for free sides
+        let sideFreeLeft = 0;
+        let sideFreeRight = 0;
         directions.forEach((dir) => {
             // Get the starting position for the ray
             const start = getSideCenterPosition(cube, dir.direction);
@@ -369,75 +252,6 @@ function areCubesAroundRemovedCube(cube1, cube2) {
     return cubesFree !== 2;
 
 }
-
-
-/*function simulateGame(scene, game) {
-    let allTilesProcessed = false;
-    // Keep trying until all tiles are processed
-    deck = game.deck;
-    console.log("in")
-    while(!allTilesProcessed){
-        scene.traverse((object) => {
-            if (object.isMesh ) {
-                texture1= object.textureName
-                scene.traverse((object2) => { if(object!=object2 && texture1 == object2.textureName){
-                    texture2= object2.textureName;
-                    console.log("som dnu");
-                    checkIfSelectedCubesCanDisappear(object,object2);
-
-                }})
-            }
-        });
-        allTilesProcessed=true;
-
-    }
-
-    console.log("all files proccessed");
-}
-*/
-
-// Add this function to find cubes by texture in the scene
-function findCubesByTexture(scene, texture1, texture2) {
-    const cubes = [];
-
-    scene.traverse((object) => {
-        if (object.isMesh && object.textureName === texture1) {
-            cubes.push(object);
-        } else if (object.isMesh && object.textureName === texture2) {
-            cubes.push(object);
-        }
-    });
-
-    return cubes;
-}
-
-function findFreeTiles(deck) {
-    const freeTiles = [];
-    //console.log("inin")
-    for (let i = 0; i < deck.length; i++) {
-        if (isTileOnBoard(scene, deck[i])) {
-            freeTiles.push(deck[i]);
-            //console.log(deck[i])
-        }
-    }
-
-
-    return freeTiles;
-}
-
-function isTileOnBoard(scene, tile) {
-    let isOnBoard = false;
-    //console.log("ininin")
-    scene.traverse((object) => {
-        if (object.isMesh && object.textureName === tile) {
-            isOnBoard = true;
-        }
-    });
-    //console.log(isOnBoard)
-    return isOnBoard;
-}
-
-
 
 function checkIfSelectedCubesCanDisappear(cube1,cube2,cube3){
     const cubesAbove = areCubesAboveRemovedCube(cube1, cube2);
@@ -527,24 +341,16 @@ function onCubeClick(event) {
         }
     }
 }
-function highlightCube(cube) {
-    cube.material.color.set(0xff0000); // Set the color to red as an example
-}
-
-// Function to unhighlight a cube (reset material color for example)
-function unhighlightCube(cube) {
-    cube.material.color.set(0xffffff); // Reset color to white as an example
-}
 function init(pyramide) {
     camera = new THREE.PerspectiveCamera(
         70,
         window.innerWidth / window.innerHeight,
         0.01,
         1000);
-    camera.position.set(0, 5, 1.2);
+    camera.position.set(0, 7.5, 0);
     var gui = new dat.GUI();
 
-// Add a button to the GUI
+    // Add a button to the GUI
     var buttonObject = { clickButton: function() { game.reshuffleBoard(); } };
     var buttonObject1 = { clickButton: function() { game.newGame(); } };
 
@@ -570,10 +376,17 @@ function init(pyramide) {
 
     // simulateGame(scene, game);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.mouseButtons = {
+        ORBIT: THREE.MOUSE.RIGHT,
+        ZOOM: THREE.MOUSE.MIDDLE,
+        PAN: THREE.MOUSE.LEFT
+    }
     controls.minDistance = 5;
     controls.maxDistance = 14
     controls.maxPolarAngle = Math.PI / 2;
     controls.enablePan = false;
+    controls.maxAzimuthAngle = 0.5;
+    controls.minAzimuthAngle = -0.5;
 
 }
 
@@ -583,13 +396,10 @@ function render() {
     camera.lookAt(scene.position);
 
     controls.update();
-    renderer.domElement.addEventListener('mousedown', onCubeClick);
+    renderer.domElement.addEventListener('click', onCubeClick);
 
     checkIfGameIsFinished();
 
-}
-function gameMap(x,y){
-//    maparray=[[0,0][0,1][]]
 }
 
 function checkIfGameIsFinished(){
@@ -601,7 +411,9 @@ function checkIfGameIsFinished(){
 }
 
 function addObjects() {
-    var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+    var planeWidth = 20;
+    var planeHeight = 10;
+    var geometryPlane = new THREE.PlaneGeometry(planeWidth, planeHeight, 4, 4);
     var matTexture = new THREE.ImageUtils.loadTexture('texture/green_mat2.jpg');
     var materialPlane = new THREE.MeshPhongMaterial({
         color: 0x747570,
@@ -615,27 +427,23 @@ function addObjects() {
     plane.receiveShadow = true;
     scene.add(plane);
 
-    var planeWidth = 20;
-    var planeHeight = 20;
-    var borderWidth = 1;  // Width of the border geometry
-    var borderHeight = 0.5;   // Height of the border geometry
+    var borderWidth = 1;
+    var borderHeight = 0.5;
+    var borderYPosition = -2.2 + borderHeight / 2;
     var borderTexture = new THREE.ImageUtils.loadTexture('texture/wood.png');
 
-// Material for the border (can be the same as the plane or different)
-    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });  // Example: black color for the border
+    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });
 
-// Function to create a single border segment
+    // Function to create a single border segment
     function createBorder(width, height, depth, position) {
         var borderGeometry = new THREE.BoxGeometry(width, height, depth);
         var borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
-        borderMesh.position.set(position.x, position.y, position.z); // Add a small offset to the y position
+        borderMesh.position.set(position.x, position.y, position.z);
         scene.add(borderMesh);
     }
 
-// The y position of the borders should be half the border height if the plane is at y=0
-    var borderYPosition = -2.2 + borderHeight / 2;
 
-// Border positions based on the plane size
+    // Border positions based on the plane size
     var borderPositions = [
         { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: planeHeight / 2 + borderWidth / 2 } },
         { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: -planeHeight / 2 - borderWidth / 2 } },
@@ -643,7 +451,6 @@ function addObjects() {
         { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: planeWidth / 2 + borderWidth / 2, y: borderYPosition, z: 0 } }
     ];
 
-// Create and position border segments using a loop
     for (var i = 0; i < borderPositions.length; i++) {
         var pos = borderPositions[i];
         createBorder(pos.width, pos.height, pos.depth, pos.position);
@@ -664,9 +471,8 @@ function addObjects() {
         { rows: 1, cols: 1, skipCenter: false }
     ];
 
-// The height of each layer, assuming each tile is offset upwards by the height of the tile below it
+    // The height of each layer, assuming each tile is offset upwards by the height of the tile below it
     let layerHeight = tileHeight;
-// Define a small constant for the gap
     const gap = 0.05;
 
     layerDefinitions.forEach((layerDef, layerIndex) => {
@@ -812,35 +618,27 @@ function addObjects() {
     pointLight.castShadow = true;
     pointLight.shadow.mapSize.width = 1000;
     pointLight.shadow.mapSize.height = 1000;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 500;
-    pointLight.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+    pointLight.shadow.bias = -0.001;
 
     pointLight2.position.set(10, 10, 10);
     pointLight2.castShadow = true;
     pointLight2.shadow.mapSize.width = 1000;
     pointLight2.shadow.mapSize.height = 1000;
-    pointLight2.shadow.camera.near = 0.5;
-    pointLight2.shadow.camera.far = 500;
-    pointLight2.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+    pointLight2.shadow.bias = -0.001;
 
     pointLight3.position.set(-10, 10, -10);
     pointLight3.castShadow = true;
     pointLight3.shadow.mapSize.width = 1000;
     pointLight3.shadow.mapSize.height = 1000;
-    pointLight3.shadow.camera.near = 0.5;
-    pointLight3.shadow.camera.far = 500;
-    pointLight3.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+    pointLight3.shadow.bias = -0.001;
 
     pointLight4.position.set(10, 10, -10);
     pointLight4.castShadow = true;
     pointLight4.shadow.mapSize.width = 1000;
     pointLight4.shadow.mapSize.height = 1000;
-    pointLight4.shadow.camera.near = 0.5;
-    pointLight4.shadow.camera.far = 500;
-    pointLight4.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+    pointLight4.shadow.bias = -0.001;
 
-    var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
+    var ambientLight = new THREE.AmbientLight(0x404040, 1);
     scene.add(ambientLight);
     scene.add(pointLight);
     scene.add(pointLight2);
@@ -853,8 +651,9 @@ function addObjects() {
 
 
 function addObjectsPyramide() {
-
-        var geometryPlane = new THREE.PlaneGeometry(20, 20, 4, 4);
+        var planeWidth = 20;
+        var planeHeight = 20;
+        var geometryPlane = new THREE.PlaneGeometry(planeWidth, planeHeight, 4, 4);
         var matTexture = new THREE.ImageUtils.loadTexture('texture/green_mat2.jpg');
         var materialPlane = new THREE.MeshPhongMaterial({
             color: 0x747570,
@@ -869,16 +668,15 @@ function addObjectsPyramide() {
         plane.receiveShadow = true;
         scene.add(plane);
 
-    var planeWidth = 20;
-    var planeHeight = 20;
-    var borderWidth = 1;  // Width of the border geometry
-    var borderHeight = 0.5;   // Height of the border geometry
+
+    var borderWidth = 1;
+    var borderHeight = 0.5;
+    var borderYPosition = -2.2 + borderHeight / 2;
     var borderTexture = new THREE.ImageUtils.loadTexture('texture/wood.png');
 
-// Material for the border (can be the same as the plane or different)
-    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });  // Example: black color for the border
+    var borderMaterial = new THREE.MeshPhongMaterial({ color: 0xe8c17a, map: borderTexture, shininess: 0 });
 
-// Function to create a single border segment
+    // Function to create a single border segment
     function createBorder(width, height, depth, position) {
         var borderGeometry = new THREE.BoxGeometry(width, height, depth);
         var borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
@@ -886,10 +684,7 @@ function addObjectsPyramide() {
         scene.add(borderMesh);
     }
 
-// The y position of the borders should be half the border height if the plane is at y=0
-    var borderYPosition = -2.2 + borderHeight / 2;
-
-// Border positions based on the plane size
+    // Border positions based on the plane size
     var borderPositions = [
         { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: planeHeight / 2 + borderWidth / 2 } },
         { width: planeWidth + 2 * borderWidth, height: borderHeight, depth: borderWidth, position: { x: 0, y: borderYPosition + 0.01, z: -planeHeight / 2 - borderWidth / 2 } },
@@ -897,7 +692,7 @@ function addObjectsPyramide() {
         { width: borderWidth, height: borderHeight, depth: planeHeight + borderWidth, position: { x: planeWidth / 2 + borderWidth / 2, y: borderYPosition, z: 0 } }
     ];
 
-// Create and position border segments using a loop
+    // Create and position border segments using a loop
     for (var i = 0; i < borderPositions.length; i++) {
         var pos = borderPositions[i];
         createBorder(pos.width, pos.height, pos.depth, pos.position);
@@ -918,9 +713,9 @@ function addObjectsPyramide() {
             //{ rows: 1, cols: 1, skipCenter: false }
         ];
 
-// The height of each layer, assuming each tile is offset upwards by the height of the tile below it
+        // The height of each layer, assuming each tile is offset upwards by the height of the tile below it
         let layerHeight = tileHeight;
-// Define a small constant for the gap
+        // Define a small constant for the gap
         const gap = 0.05;
 
         layerDefinitions.forEach((layerDef, layerIndex) => {
@@ -977,35 +772,27 @@ function addObjectsPyramide() {
         pointLight.castShadow = true;
         pointLight.shadow.mapSize.width = 1000;
         pointLight.shadow.mapSize.height = 1000;
-        pointLight.shadow.camera.near = 0.5;
-        pointLight.shadow.camera.far = 500;
-        pointLight.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+        pointLight.shadow.bias = -0.001;
 
         pointLight2.position.set(10, 10, 10);
         pointLight2.castShadow = true;
         pointLight2.shadow.mapSize.width = 1000;
         pointLight2.shadow.mapSize.height = 1000;
-        pointLight2.shadow.camera.near = 0.5;
-        pointLight2.shadow.camera.far = 500;
-        pointLight2.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+        pointLight2.shadow.bias = -0.001;
 
         pointLight3.position.set(-10, 10, -10);
         pointLight3.castShadow = true;
         pointLight3.shadow.mapSize.width = 1000;
         pointLight3.shadow.mapSize.height = 1000;
-        pointLight3.shadow.camera.near = 0.5;
-        pointLight3.shadow.camera.far = 500;
-        pointLight3.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+        pointLight3.shadow.bias = -0.001;
 
         pointLight4.position.set(10, 10, -10);
         pointLight4.castShadow = true;
         pointLight4.shadow.mapSize.width = 1000;
         pointLight4.shadow.mapSize.height = 1000;
-        pointLight4.shadow.camera.near = 0.5;
-        pointLight4.shadow.camera.far = 500;
-        pointLight4.shadow.bias = -0.001; // Adjust this value carefully to reduce shadow acne
+        pointLight4.shadow.bias = -0.001;
 
-        var ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
+        var ambientLight = new THREE.AmbientLight(0x404040, 1);
         scene.add(ambientLight);
         scene.add(pointLight);
         scene.add(pointLight2);
